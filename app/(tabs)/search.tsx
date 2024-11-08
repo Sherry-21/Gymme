@@ -3,6 +3,7 @@ import { Colors } from "@/constants/Colors";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { Image, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { searchResultHelper } from "@/helper/pathUtils";
 
 const searchImage = require('@/assets/images/search/search.png')
 const aiImage = require('@/assets/images/search/aiImage.png')
@@ -22,6 +23,10 @@ export default function SearchScreen() {
         router.push("/aiLens")
     }
 
+    const handleSubmit = () => {
+        router.push(searchResultHelper({path:"searchResult", name:"mock"}) as any)
+    }
+
     return(
         <SafeAreaView style={styles.saveArea}>
             <ScrollView style={styles.mainLayout}>
@@ -34,6 +39,7 @@ export default function SearchScreen() {
                             onChangeText={setValue}
                             placeholder={'Enter equipment name'}
                             placeholderTextColor={Colors.gymme.placeholder}
+                            onSubmitEditing={handleSubmit}
                             underlineColorAndroid="transparent">
                         </TextInput>
                     </View>
