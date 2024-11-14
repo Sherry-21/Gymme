@@ -7,7 +7,7 @@ import {
   StyleSheet,
   Text,
   View,
-  ScrollView
+  ScrollView,
 } from "react-native";
 import { useVideoPlayer, VideoView } from "expo-video";
 import { router } from "expo-router";
@@ -43,7 +43,7 @@ export default function equipmentDetail() {
   }, []);
 
   const backButton = () => {
-    router.push('/search')
+    router.push("/search");
   };
 
   const bookmarkNews = () => {
@@ -52,8 +52,8 @@ export default function equipmentDetail() {
 
   return (
     <SafeAreaView style={styles.baseLayout}>
-      <ScrollView>
-        {equipmentDetail ? (
+      {equipmentDetail ? (
+        <ScrollView>
           <View style={styles.mainLayout}>
             <View style={styles.headerContainer}>
               <Pressable style={styles.backgroundArrow} onPress={backButton}>
@@ -156,12 +156,12 @@ export default function equipmentDetail() {
               <Text style={styles.desc}>{equipmentDetail.description}</Text>
             </View>
           </View>
-        ) : (
-          <View style={styles.mainLoading}>
-            <Image style={styles.loadImage} source={loading} />
-          </View>
-        )}
-      </ScrollView>
+        </ScrollView>
+      ) : (
+        <View style={styles.mainLoading}>
+          <Image style={styles.loadImage} source={loading} />
+        </View>
+      )}
     </SafeAreaView>
   );
 }

@@ -5,7 +5,7 @@ import { useState } from "react";
 
 const CustomDropDown = (props:any) => {
   const [open, setOpen] = useState(props.open);
-  const [value, setValue] = useState(null);
+  const [value, setValue] = useState(props.value);
   const [items, setItems] = useState(props.items);
 
   return(

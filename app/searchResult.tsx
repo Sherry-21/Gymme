@@ -9,16 +9,18 @@ import {
 } from "react-native";
 import { useEffect, useState } from "react";
 import { eqDetailResultHelper } from "@/helper/pathUtils";
+import { useLocalSearchParams } from "expo-router";
 
 const loading = require("@/assets/images/searchResult/loading.gif");
 
 export default function searchResult() {
   const [equipment, setEquipment]: any = useState(null);
+  const { name } = useLocalSearchParams();
 
   useEffect(() => {
     const fetchEquipment = async () => {
       try {
-        const response = await fetch("/search-result?equipmentId=mock");
+        const response = await fetch(`/searchResult?name=${name}`);
         const json = await response.json();
         setEquipment(json.equipment);
       } catch (error) {

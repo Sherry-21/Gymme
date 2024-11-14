@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import {
   Image,
   Pressable,
+  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -17,7 +18,7 @@ export default function NewsDetail() {
   const { newsId } = useLocalSearchParams();
 
   const backButton = () => {
-    router.push("/indexes");
+    router.back();
   };
 
   const bookmarkNews = () => {

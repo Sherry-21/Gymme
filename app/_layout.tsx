@@ -42,6 +42,7 @@ export default function RootLayout() {
         <Stack.Screen name="aiLens" options={{ headerShown: false }} />
         <Stack.Screen name="searchResult" options={{ headerShown: false }} />
         <Stack.Screen name="equipmentDetail" options={{ headerShown: false }} />
+        <Stack.Screen name="bookmarkList" options={{ headerShown: false }} />
         <Stack.Screen name="test" options={{ headerShown: false }} />
       </Stack>
     </View>

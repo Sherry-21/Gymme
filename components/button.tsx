@@ -1,6 +1,5 @@
 import { Pressable, StyleSheet, Text, TouchableOpacity } from "react-native"
 import { Colors } from '@/constants/Colors';
-import { router } from "expo-router";
 
 const buttonCustom = (props:any) => {
   const styles = StyleSheet.create({
@@ -27,11 +26,6 @@ const buttonCustom = (props:any) => {
     }
     catch(e){
       console.log("Parent don't have any inherit function");
-    }
-
-    //move to other page
-    if(props.page != null) {
-      router.push({ pathname: props.page});
     }
   }
 

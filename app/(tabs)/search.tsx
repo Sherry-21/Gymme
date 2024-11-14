@@ -24,7 +24,7 @@ export default function SearchScreen() {
     }
 
     const handleSubmit = () => {
-        router.push(searchResultHelper({path:"searchResult", name:"mock"}) as any)
+        router.push(searchResultHelper({path:"searchResult", name:"lolzzz"}) as any)
     }
 
     return(

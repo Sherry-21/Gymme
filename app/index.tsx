@@ -1,5 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
-import { View, StyleSheet, Text, Image, StatusBar } from "react-native";
+import {
+  View,
+  StyleSheet,
+  Text,
+  Image,
+  StatusBar,
+  SafeAreaView,
+} from "react-native";
 import Entypo from "@expo/vector-icons/Entypo";
 import * as SplashScreen from "expo-splash-screen";
 import * as Font from "expo-font";
@@ -7,32 +14,8 @@ import LoginTextField from "@/components/customTextField";
 import ButtonCustom from "@/components/button";
 import { Link } from "expo-router";
 import { Colors } from "@/constants/Colors";
-import { createServer } from "miragejs";
-
-createServer({
-  routes() {
-    this.get("/search-result", () => {
-      return {
-        equipment: {
-          id: "1",
-          name: "barbel",
-          image: "https://reactnative.dev/img/tiny_logo.png",
-          muscleCategory: ["test1", "test2", "test3", "test4", "test5"],
-        },
-      };
-    });
-
-    this.get("/equipment-detail", () => {
-      return{
-        equipmentDetail: {
-          name: "muscleku",
-          videoLink: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-          description: "Lorem ipsum dolor sit amet consectetur, adipisicing elit. Cupiditate iure earum aut quia nihil similique natus sit quasi accusamus. Iusto repellat, adipisci ea voluptates architecto ad repudiandae officiis vitae, voluptatem suscipit nam, aspernatur molestias necessitatibus expedita optio praesentium sit est quia. Soluta voluptatibus perspiciatis incidunt totam itaque earum quas est."
-        }
-      }
-    })
-  }
-});
+import create_server from "@/helper/createServer";
+import { router } from "expo-router";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -40,6 +23,8 @@ const lock = require("@/assets/images/login/lock.png");
 const emailImage = require("@/assets/images/login/email.png");
 
 export default function App() {
+  create_server();
+
   const [appIsReady, setAppIsReady] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -57,6 +42,13 @@ export default function App() {
     prepare();
   }, []);
 
+  const transformInputIntoRequest = () => {
+    return JSON.stringify({
+      useremail: email,
+      userpassword: password,
+    });
+  };
+
   const onLayoutRootView = useCallback(async () => {
     if (appIsReady) {
       await SplashScreen.hideAsync();
@@ -68,12 +60,32 @@ export default function App() {
   }
 
   const validateAccount = () => {
-    console.log("Belom ada validasi login");
-    console.log(email);
+    console.log(process.env.NODE_ENV);
+
+    const postData = async () => {
+      try {
+        const response = await fetch("/api/user/login2", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          body: transformInputIntoRequest(),
+        });
+        const json = await response.json();
+        if (json.success) {
+          router.push({ pathname: '/test'});
+        }
+      } catch (error) {
+        console.error("Error login", error);
+      }
+    };
+
+    postData();
   };
 
   return (
-    <View style={styles.baseColor} onLayout={onLayoutRootView}>
+    <SafeAreaView style={styles.baseColor} onLayout={onLayoutRootView}>
       <StatusBar
         barStyle={"dark-content"}
         backgroundColor="white"
@@ -107,7 +119,6 @@ export default function App() {
           width={258}
           padding={15}
           text={"Login"}
-          page={"/test"}
         />
 
         <View style={styles.bottomText}>
@@ -117,7 +128,7 @@ export default function App() {
           </Link>
         </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
