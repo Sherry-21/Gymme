@@ -13,6 +13,7 @@ import ButtonCustom from "@/components/button";
 import { useState } from "react";
 import { Colors } from "@/constants/Colors";
 import { router } from "expo-router";
+import {getInformationById} from "@/app/API/GetInformationApi";
 
 const user = require("@/assets/images/register/human.png");
 const phone = require("@/assets/images/register/phone.png");
@@ -103,6 +104,7 @@ export default function register() {
       postData();
     }
   };
+
 
   return (
     <SafeAreaView style={styles.baseColor}>
