@@ -3,6 +3,9 @@ import { createServer } from "miragejs";
 const create_server = () => {
   createServer({
     routes() {
+      this.namespace = ""; // Use empty namespace for direct match or customize if needed
+
+      // Mock route for search results
       this.get("/searchResult/", (schema, request) => {
         const name = request.queryParams.name;
 
@@ -16,19 +19,21 @@ const create_server = () => {
         };
       });
 
+      // Mock route for equipment detail
       this.get("/equipment-detail", () => {
         return {
           equipmentDetail: {
             name: "lol",
             videoLink:
-              "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+                "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
             description:
-              "Lorem ipsum dolor sit amet consectetur, adipisicing elit. Cupiditate iure earum aut quia nihil similique natus sit quasi accusamus. Iusto repellat, adipisci ea voluptates architecto ad repudiandae officiis vitae, voluptatem suscipit nam, aspernatur molestias necessitatibus expedita optio praesentium sit est quia. Soluta voluptatibus perspiciatis incidunt totam itaque earum quas est.",
+                "Lorem ipsum dolor sit amet consectetur, adipisicing elit. Cupiditate iure earum aut quia nihil similique natus sit quasi accusamus. Iusto repellat, adipisci ea voluptates architecto ad repudiandae officiis vitae, voluptatem suscipit nam, aspernatur molestias necessitatibus expedita optio praesentium sit est quia. Soluta voluptatibus perspiciatis incidunt totam itaque earum quas est.",
           },
         };
       });
 
-      this.post("api/user/register", (schema, request) => {
+      // Mock route for user registration
+      this.post("/api/user/register", (schema, request) => {
         return {
           data: "string",
           message: request.requestBody,
@@ -37,7 +42,8 @@ const create_server = () => {
         };
       });
 
-      this.post("api/user/login2", (schema, request) => {
+      // Mock route for user login
+      this.post("/api/user/login2", (schema, request) => {
         return {
           data: "string",
           message: request.requestBody,
@@ -45,6 +51,10 @@ const create_server = () => {
           success: true,
         };
       });
+
+      // Allow passthrough requests to the real backend for all other routes
+      this.passthrough("http://localhost:3000/**");
+      this.passthrough(); // Optional: Allow other non-mocked requests (e.g., external API calls)
     },
   });
 };
