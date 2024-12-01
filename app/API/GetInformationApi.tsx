@@ -2,7 +2,7 @@ import API from "@/app/api";
 import axios from "axios";
 
 const ENDPOINTS = {
-    getInformationById:() =>'api/information/by-id/1',
+    getInformationById:(id:number) =>`api/information/by-id/${id}`,
     // get
 }
 
@@ -15,8 +15,7 @@ const getInformationById = async (id: number) => {
     //     "information_type_id": 1,
     try {
         if (!id) throw new Error("ID is required to fetch information.");
-
-        const response = await API.get(ENDPOINTS.getInformationById());
+        const response = await API.get(ENDPOINTS.getInformationById(id));
         // console.log(response.data);
         console.log("sdkjasnkjdbaskjdbas");
         return response.data;

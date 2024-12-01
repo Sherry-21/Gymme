@@ -1,17 +1,39 @@
-import { Link, Stack } from 'expo-router';
-import { StyleSheet } from 'react-native';
+import {Link} from 'expo-router';
+import {StyleSheet} from 'react-native';
 
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+import {ThemedText} from '@/components/ThemedText';
+import {ThemedView} from '@/components/ThemedView';
+import {getItems} from "@/app/utils/SecureStoreChain";
+import {useEffect, useState} from "react";
 
-export default function test() {
+
+async function GetKey() {
+  return await getItems('itemKey'); // Assuming getItems is defined and working.
+}
+
+export default function Test() {
+  const [keyValue, setKeyValue] = useState<string|null>(null);
+
+  useEffect(() => {
+    // Fetch the key value when the component mounts
+    async function fetchKey() {
+      const value = await GetKey();
+      setKeyValue(value); // Store the resolved value in state
+    }
+
+    fetchKey();
+  }, []); // Empty dependency array ensures this runs once when the component mounts
+
   return (
-    <ThemedView style={styles.container}>
-      <ThemedText type="title">test.</ThemedText>
-      <Link href="/indexes" style={styles.link}>
-        <ThemedText type="link">Go to home screen!</ThemedText>
-      </Link>
-    </ThemedView>
+      <ThemedView style={styles.container}>
+        <ThemedText type="title">test.</ThemedText>
+        <Link href="/indexes" style={styles.link}>
+          {/* Display the token from localStorage */}
+          <ThemedText type="link">{localStorage.getItem('thisistoken')}!</ThemedText>
+          {/* Display the resolved keyValue */}
+          <ThemedText type="link">{keyValue || 'Loading...'}</ThemedText>
+        </Link>
+      </ThemedView>
   );
 }
 

@@ -16,7 +16,8 @@ import { Link } from "expo-router";
 import { Colors } from "@/constants/Colors";
 import create_server from "@/helper/createServer";
 import { router } from "expo-router";
-
+import {getSecureItem, saveSecureItem} from "@/app/utils/SessionKeyChain";
+import {getItems, setItems} from "@/app/utils/SecureStoreChain";
 SplashScreen.preventAutoHideAsync();
 
 const lock = require("@/assets/images/login/lock.png");
@@ -59,9 +60,14 @@ export default function App() {
     return null;
   }
 
-  const validateAccount = () => {
+  const validateAccount = async () => {
     console.log(process.env.NODE_ENV);
-
+    await setItems("itemKey","thisismyDebugToken")
+    const token = await getItems('itemKey');
+    console.log(token);
+    await saveSecureItem("thisistoken", "username");
+    const savedToken = await getSecureItem('thisistoken');
+    console.log(savedToken)
     const postData = async () => {
       try {
         const response = await fetch("/api/user/login2", {
@@ -74,7 +80,7 @@ export default function App() {
         });
         const json = await response.json();
         if (json.success) {
-          router.push({ pathname: '/test'});
+          router.push({pathname: '/test'});
         }
       } catch (error) {
         console.error("Error login", error);

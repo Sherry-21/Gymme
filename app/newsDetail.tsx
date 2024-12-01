@@ -30,7 +30,6 @@ export default function NewsDetail() {
 
   useEffect(() => {
     console.log(newsId);
-
     return () => {
       console.log("UNMOUNT");
     };
@@ -44,8 +43,7 @@ export default function NewsDetail() {
     const data = await getInformationById(InformationId)
     setInformation(data.data)
     console.log(Information)
-    console.log("adsadas")
-    console.log(Information?.information_body_content)
+      console.log(Information?.information_body_content)
   }
   useEffect(() => {
     // Execute the function when the page is first loaded
