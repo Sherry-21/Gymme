@@ -1,50 +1,47 @@
-import API from "@/app/api";
+import {API} from "@/app/api";
 import axios from "axios";
+import { router } from "expo-router";
 
 const ENDPOINTS = {
-    getInformationById:(id:number) =>`api/information/by-id/${id}`,
-    // get
+    getInformationById:(id:number) =>`/api/information/by-id/${id}`,
+    getAllInformationByPagination: (page:string, limit:string) => `/api/information?page=${page}&limit=${limit}`,
+    getAllInformationBySearch: (page:string, limit:string, name:string) => `/api/information/search?key_filter=${name}&page=${page}&limit=${limit}`
 }
 
 const getInformationById = async (id: number) => {
-    // "information_id": 1,
-    //     "information_header": "Header",
-    //     "information_date_created": "2024-11-17T13:51:29.98Z",
-    //     "information_created_by_user_id": 1,
-    //     "information_body": null,
-    //     "information_type_id": 1,
     try {
         if (!id) throw new Error("ID is required to fetch information.");
-        const response = await API.get(ENDPOINTS.getInformationById(id));
-        // console.log(response.data);
-        console.log("sdkjasnkjdbaskjdbas");
+        const api = await API();
+        const response = await api.get(ENDPOINTS.getInformationById(id));
         return response.data;
     } catch (error: unknown) {
-        console.log("ini error bos");
-        console.error(error)
-        // Narrow down the error type
-        if (axios.isAxiosError(error)) {
-            // AxiosError-specific handling
-            if (error.response) {
-                console.error(
-                    `Error: ${error.response.status} - ${error.response.data.message || error.response.statusText}`
-                );
-            } else if (error.request) {
-                console.error("Error: No response received from server.", error.request);
-            } else {
-                console.error("Error: Axios setup issue.", error.message);
-            }
-        } else if (error instanceof Error) {
-            // General Error handling
-            console.error("Error:", error.message);
-        } else {
-            // Fallback for unknown error types
-            console.error("An unknown error occurred:", error);
-        }
-
-        throw error; // Rethrow error for the caller to handle
+        console.log(error)
+        return null;
     }
 };
 
+//deprecated
+const getAllInformationByPagination = async (page:string, limit:string) => {    
+    try {
+        const api = await API();
+        const response = await api.get(ENDPOINTS.getAllInformationByPagination(page, limit));
+        return response.data;
+    } catch (error: unknown) {
+        console.log(error)
+        return null;
+    }
+};
 
-export {getInformationById}
+const getAllInformationBySearch = async (page:string, limit:string, name:string) => {    
+    try {
+        const api = await API();
+        const response = await api.get(ENDPOINTS.getAllInformationBySearch(page, limit, name));
+        console.log(response)
+        return response.data;
+    } catch (error: unknown) {
+        console.log(error)
+        return null;
+    }
+};
+
+export {getInformationById, getAllInformationByPagination, getAllInformationBySearch}

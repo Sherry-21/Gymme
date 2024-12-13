@@ -10,4 +10,8 @@ const eqDetailResultHelper = (props:any) => {
     return `/${props.path}?name=${props.name}&muscle=${props.muscle}`;
 }
 
-export {newsPathHelper, searchResultHelper, eqDetailResultHelper};
+const timerHelper = (props:any) => {
+    return `${props.path}?timerId=${props.id}`;
+}
+
+export {newsPathHelper, searchResultHelper, eqDetailResultHelper, timerHelper};

@@ -32,6 +32,7 @@ const styles = StyleSheet.create({
     borderBottomColor: Colors.gymme.placeholder,
     borderBottomWidth: 2,
     marginBottom: 10,
+    zIndex: 10
   },
   image: {
     margin: 10,

@@ -44,6 +44,10 @@ export default function RootLayout() {
         <Stack.Screen name="equipmentDetail" options={{ headerShown: false }} />
         <Stack.Screen name="bookmarkList" options={{ headerShown: false }} />
         <Stack.Screen name="test" options={{ headerShown: false }} />
+        <Stack.Screen name="Timer" options={{ headerShown: false }} />
+        <Stack.Screen name="CalenderScreen" options={{ headerShown: false }} />
+        <Stack.Screen name="timerList" options={{ headerShown: false }} />
+        <Stack.Screen name="viewWeightHistory" options={{ headerShown: false }} />
       </Stack>
     </View>
   );

@@ -7,7 +7,7 @@ const xImage = require("@/assets/images/search/x.png")
 const CustomSearchHistory = (props:any) => {
 
     const deleteHistory = () => {
-        console.log("HAPUS HISTORY")
+        props.parent(props.text)
     }
 
     return(

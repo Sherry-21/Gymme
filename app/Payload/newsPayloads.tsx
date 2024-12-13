@@ -2,8 +2,9 @@ import {ensureManifestHasValidIntentFilter} from "@expo/config-plugins/build/and
 
 
 const informationPayload = () =>{
-
+    
 }
+
 interface EquipmentDetailPayload{
     "information_body_paragraph":string;
     "information_image_content_path": string;

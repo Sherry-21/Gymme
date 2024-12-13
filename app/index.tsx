@@ -18,14 +18,15 @@ import create_server from "@/helper/createServer";
 import { router } from "expo-router";
 import {getSecureItem, saveSecureItem} from "@/app/utils/SessionKeyChain";
 import {getItems, setItems} from "@/app/utils/SecureStoreChain";
+import {userLogin} from "./API/authentication";
 SplashScreen.preventAutoHideAsync();
 
 const lock = require("@/assets/images/login/lock.png");
 const emailImage = require("@/assets/images/login/email.png");
 
 export default function App() {
-  create_server();
-
+  // create_server();
+  
   const [appIsReady, setAppIsReady] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -43,11 +44,12 @@ export default function App() {
     prepare();
   }, []);
 
-  const transformInputIntoRequest = () => {
-    return JSON.stringify({
-      useremail: email,
-      userpassword: password,
-    });
+  const getPayload = () => {
+    const payload = {
+      user_email: email,
+      user_password: password
+    }
+    return payload
   };
 
   const onLayoutRootView = useCallback(async () => {
@@ -62,24 +64,16 @@ export default function App() {
 
   const validateAccount = async () => {
     console.log(process.env.NODE_ENV);
-    await setItems("itemKey","thisismyDebugToken")
-    const token = await getItems('itemKey');
-    console.log(token);
-    await saveSecureItem("thisistoken", "username");
-    const savedToken = await getSecureItem('thisistoken');
-    console.log(savedToken)
     const postData = async () => {
       try {
-        const response = await fetch("/api/user/login2", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Accept": "application/json"
-          },
-          body: transformInputIntoRequest(),
-        });
-        const json = await response.json();
-        if (json.success) {
+        const response = await userLogin(getPayload())
+        console.log(response)
+        if (response.success == false) {
+          console.log("WKWK")
+        }
+        else {
+          await setItems("itemKey", response.token)
+          // await saveSecureItem("itemKey", response.token);
           router.push({pathname: '/test'});
         }
       } catch (error) {

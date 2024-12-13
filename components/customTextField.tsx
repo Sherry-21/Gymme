@@ -23,8 +23,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     borderBottomColor: Colors.gymme.placeholder,
     borderBottomWidth: 2,
-    marginBottom: 10,
-    zIndex: -1
+    marginBottom: 10
   },
   image: {
     margin: 10,

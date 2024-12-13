@@ -43,7 +43,7 @@ const create_server = () => {
       });
 
       // Mock route for user login
-      this.post("/api/user/login2", (schema, request) => {
+      this.post("http://localhost:3000/api/user/login2", (schema, request) => {
         return {
           data: "string",
           message: request.requestBody,

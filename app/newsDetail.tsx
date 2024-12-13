@@ -14,48 +14,62 @@ import {
 import {getInformationById} from "@/app/API/GetInformationApi";
 import {EquipmentPayload} from "@/app/Payload/newsPayloads";
 import {parseDate} from "@/app/helper/dateFormatter";
+import { deleteBookmarkList, postBookmarkList } from "./API/bookmarkApi";
 
 export default function NewsDetail() {
   const [bookmark, setBookmark] = useState(false);
 
   const { newsId } = useLocalSearchParams();
 
-  const backButton = () => {
-    router.back();
-  };
-
-  const bookmarkNews = () => {
-    setBookmark((bookmark) => !bookmark);
-  };
-
-  useEffect(() => {
-    console.log(newsId);
-    return () => {
-      console.log("UNMOUNT");
-    };
-  });
   const [InformationData,SetInformationData] = useState(null)
 
   const [Information,setInformation] = useState<EquipmentPayload|null>(null);
 
-  const [InformationId,SetInformationId] = useState(1)
+  const [InformationId, SetInformationId]:any = useState(newsId)
+
+  const backButton = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.push('/news');
+    }
+  };
+
+  const bookmarkNews = async () => {
+    setBookmark(!bookmark); 
+    if (bookmark == true) {
+      const data = await postBookmarkList(parseInt(InformationId));
+      console.log(data)
+    }
+    else {
+      const data = await deleteBookmarkList(parseInt(InformationId));
+      console.log(data)
+    }
+  };
+
   const onclickGetInformation = async ()=>{
     const data = await getInformationById(InformationId)
-    setInformation(data.data)
-    console.log(Information)
+    if(data == null){
+      router.push('/search')
+    }
+    else{
+      setInformation(data.data)
+      console.log(Information)
       console.log(Information?.information_body_content)
+    }
   }
+  
   useEffect(() => {
-    // Execute the function when the page is first loaded
     onclickGetInformation();
   }, []);
+
   return (
     <ScrollView style={styles.baseColor}>
       <Image
         style={styles.aboveImage}
         source={require("@/assets/images/newsDetail/test-image.png")}
       ></Image>
-      <Pressable style={styles.backgroundArrow} onPress={() =>onclickGetInformation()}>
+      <Pressable style={styles.backgroundArrow} onPress={() => backButton()}>
         <Image
           style={styles.arrowBack}
           source={require("@/assets/images/newsDetail/arrow-back.png")}
@@ -65,7 +79,6 @@ export default function NewsDetail() {
       <View style={styles.mainLayout}>
         <View style={styles.textBookmark}>
           <Text style={styles.headerText}>
-            {/*Lorem ipsum dolor, sit amet consectetur adipisicing.*/}
             {Information?.information_header}
           </Text>
           <Pressable onPress={bookmarkNews}>
@@ -88,14 +101,14 @@ export default function NewsDetail() {
             <View key={index}>
               <Text>{"\n"}</Text>
 
-              <Text style={styles.newsText}>
+              <Text style={styles.newsText}> 
                 {detail.information_body_paragraph}
               </Text>
               <Text>{"\n"}</Text>
 
               <Image
                   style={styles.aboveImage}
-                  source={require("@/assets/images/newsDetail/test-image.png")}
+                  source={{uri: 'https://asset.cloudinary.com/dmgpda5o7/7983957a5ae4489c5b8fda9899c7447d'}}
               ></Image>
               <Text>{"\n"}</Text>
 

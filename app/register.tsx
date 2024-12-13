@@ -13,7 +13,7 @@ import ButtonCustom from "@/components/button";
 import { useState } from "react";
 import { Colors } from "@/constants/Colors";
 import { router } from "expo-router";
-import {getInformationById} from "@/app/API/GetInformationApi";
+import { userRegister } from "./API/authentication";
 
 const user = require("@/assets/images/register/human.png");
 const phone = require("@/assets/images/register/phone.png");
@@ -22,8 +22,8 @@ const emailImage = require("@/assets/images/register/email.png");
 const genderImage = require("@/assets/images/register/gender.png");
 
 const genderItems = [
-  { label: "Male", value: "male" },
-  { label: "Female", value: "female" },
+  { label: "Male", value: "M" },
+  { label: "Female", value: "F" },
 ];
 
 export default function register() {
@@ -37,16 +37,6 @@ export default function register() {
   const [emailError, setEmailError] = useState("");
   const [pnError, setPnError] = useState("");
   const [passError, setPassError] = useState("");
-
-  const transformInputIntoRequest = () => {
-    return JSON.stringify({
-      user_email: email,
-      user_gender: gender,
-      user_name: username,
-      user_password: password,
-      user_phone_number: phoneNumber,
-    });
-  };
 
   const validateEmail = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -85,17 +75,23 @@ export default function register() {
       setPassError("");
     }
 
+    const getPayload = () => {
+      const payload = {
+        user_email: email,
+        user_gender: gender,
+        user_name: username,
+        user_password: password,
+        user_phone_number: phoneNumber,
+      }
+      return payload
+    }
+
     if (firstTest && secondTest && thirdTest) {
       const postData = async () => {
         try {
-          const response = await fetch("/api/user/register", {
-            method: "POST",
-            body: transformInputIntoRequest(),
-          });
-          const json = await response.json();
-          
-          if (json.success) {
-            router.push({ pathname: "/registerSuccess" });
+          const response = await userRegister(getPayload())
+          if (response.success == true) {
+            router.push('/registerSuccess');
           }
         } catch (error) {
           console.error("Error posting data:", error);

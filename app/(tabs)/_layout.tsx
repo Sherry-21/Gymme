@@ -6,7 +6,7 @@ import { Colors } from "@/constants/Colors";
 
 export default function TabLayout() {
   useEffect(() => {
-    console.log("INSERT HERE 2");
+    
   });
   return (
     <Tabs
@@ -25,9 +25,9 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="indexes"
+        name="news"
         options={{
-          title: "News",
+          title: "news",
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon
               name={focused ? "newspaper" : "newspaper-outline"}
@@ -49,9 +49,9 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="other"
         options={{
-          title: "Explores",
+          title: "other",
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon
               name={focused ? "code-slash" : "code-slash-outline"}

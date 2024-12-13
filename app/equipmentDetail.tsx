@@ -20,7 +20,6 @@ export default function equipmentDetail() {
 
   const player = useVideoPlayer(videoLink, (player) => {
     player.loop = true;
-    player.play();
   });
 
   const [equipmentDetail, setEquipmentDetail]: any = useState(null);
@@ -96,7 +95,7 @@ export default function equipmentDetail() {
                     test
                   </Text>
                   <Text style={[styles.tableCell, styles.right]}>
-                    dumyyyyyyyyyyyyyyy
+                    dumyyyyyyyyy
                   </Text>
                 </View>
                 <View style={styles.tableRow}>
@@ -145,12 +144,16 @@ export default function equipmentDetail() {
             <View>
               <Text style={styles.headerText}>Video Tutorial</Text>
               <VideoView
-                ref={ref}
+                ref = {ref}
                 player={player}
+                style={[
+                  styles.video
+                ]}
                 allowsFullscreen
                 allowsPictureInPicture
               />
             </View>
+
             <View>
               <Text style={styles.headerText}>Instruction</Text>
               <Text style={styles.desc}>{equipmentDetail.description}</Text>
@@ -198,7 +201,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderBottomWidth: 1,
     borderBottomColor: Colors.gymme.placeholder,
-    elevation: 3,
     paddingBottom: 10,
 
     //ios
@@ -225,8 +227,7 @@ const styles = StyleSheet.create({
     display: "flex",
   },
   chessImage: {
-    width: 119,
-    height: 250,
+    width: '25%',
   },
   secondContainer: {
     display: "flex",
@@ -236,11 +237,11 @@ const styles = StyleSheet.create({
     marginTop: 25,
   },
   tableRow: {
+    flex: 1,
     flexDirection: "row",
-    alignItems: "center",
+    justifyContent: "space-between"
   },
   tableCell: {
-    flex: 1,
     padding: 8,
     fontFamily: "Poppins",
   },
@@ -252,9 +253,9 @@ const styles = StyleSheet.create({
   },
   headerCell: {
     fontWeight: "bold",
-    backgroundColor: "#f0f0f0",
   },
   tableContainer: {
+    width: '65%',
     borderWidth: 1,
     borderRadius: 15,
     padding: 8,
@@ -279,5 +280,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: "Poppins",
     textAlign: "justify",
+  },
+  video: {
+    width: '100%',
+    height: 200
   },
 });
