@@ -11,6 +11,7 @@ import { Colors } from "@/constants/Colors";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 import { searchResultHelper } from "@/helper/pathUtils";
+import { aiSearch } from "./API/searchApi";
 
 const gallery = require("@/assets/images/search/gallery.png");
 const next = require("@/assets/images/search/next.png");
@@ -27,6 +28,7 @@ export default function AiLens() {
 
   useEffect(() => {
     (async () => {
+      console.log("WKWK")
       const { status } = await Camera.requestCameraPermissionsAsync();
       setHasPermission(status === "granted");
     })();
@@ -100,9 +102,13 @@ export default function AiLens() {
       );
 
       const result = await response.json();
+      console.log(result)
       //send data to backend -> secureURL to get String of eq data
       //add 1 variabel to store the data
-      handleSubmit()
+
+      const responseSearch = await aiSearch(result.public_id);
+      console.log(responseSearch)
+      // handleSubmit()
     } catch (error) {
       console.log(error);
       return;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   View,
   Text,
@@ -12,12 +12,16 @@ import {
   SafeAreaView,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import { router, useLocalSearchParams } from "expo-router";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { Colors } from "@/constants/Colors";
 import { StatusBar } from "react-native";
-import { getTimerQueue } from "./API/timerApi";
+import { deleteQueue, getTimerQueue, insertQueue } from "./API/timerApi";
+import Loading from "@/components/loading";
+import { Audio } from "expo-av";
+import { Sound } from "expo-av/build/Audio";
 
 interface Exercise {
+  id: number;
   name: string;
   duration: string;
 }
@@ -30,6 +34,7 @@ interface NewExercise {
 }
 
 const WorkoutTimer: React.FC = () => {
+  const [initialQueue, setInitialQueue] = useState<Exercise[]>([]);
   const [queue, setQueue] = useState<Exercise[]>([]);
   const [currentTime, setCurrentTime] = useState<number>(0);
   const [isRunning, setIsRunning] = useState<boolean>(false);
@@ -41,13 +46,61 @@ const WorkoutTimer: React.FC = () => {
     minutes: "",
     seconds: "",
   });
-
+  const [isLoading, setIsLoading] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const hoursInputRef = useRef<TextInput>(null);
   const minutesInputRef = useRef<TextInput>(null);
   const secondsInputRef = useRef<TextInput>(null);
-  
-  const { id } = useLocalSearchParams();
+
+  //sound
+  const [sound, setSound] = useState<Sound | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [stopTimeout, setStopTimeout] = useState<ReturnType<
+    typeof setTimeout
+  > | null>(null);
+  const [timerToaster, setTimerToaster] = useState(false);
+
+  const { timerId } = useLocalSearchParams();
+
+  async function playSound() {
+    console.log("Loading Sound");
+    const { sound } = await Audio.Sound.createAsync(
+      require("@/assets/sound/alarm.mp3")
+    );
+    setSound(sound);
+
+    console.log("Playing Sound");
+    await sound.playAsync();
+    setIsPlaying(true);
+
+    sound.setOnPlaybackStatusUpdate((status) => {
+      if (status.isLoaded && status.didJustFinish) {
+        console.log("Sound ended, restarting...");
+        sound.replayAsync();
+      }
+    });
+
+    const timeout = setTimeout(async () => {
+      console.log("Stopping Sound after 1 minute");
+      if (sound) {
+        await sound.stopAsync();
+        setIsPlaying(false);
+      }
+    }, 60000);
+
+    setStopTimeout(timeout);
+  }
+
+  async function stopManually() {
+    console.log("Stopping Sound manually");
+    if (stopTimeout) {
+      clearTimeout(stopTimeout);
+    }
+    if (sound) {
+      await sound.stopAsync();
+      setIsPlaying(false);
+    }
+  }
 
   const timeToSeconds = (timeStr: string): number => {
     const [hours = 0, minutes = 0, seconds = 0] = timeStr
@@ -81,7 +134,7 @@ const WorkoutTimer: React.FC = () => {
     }
   };
 
-  const handleAdd = (): void => {
+  const handleAdd = async () => {
     if (
       !newExercise.name ||
       (!newExercise.hours && !newExercise.minutes && !newExercise.seconds)
@@ -96,7 +149,19 @@ const WorkoutTimer: React.FC = () => {
       2,
       "0"
     )}`;
+
+    setShowAddModal(false);
+    setIsLoading(true);
+    const response = await insertQueue(
+      parseInt(timerId.toString()),
+      getPayload()
+    );
+    setIsLoading(false);
+
+    const data = response.data;
+
     const newTimer: Exercise = {
+      id: data.timer_id,
       name:
         newExercise.name.length > 10
           ? `${newExercise.name.slice(0, 10)}...`
@@ -104,12 +169,8 @@ const WorkoutTimer: React.FC = () => {
       duration,
     };
 
+    setInitialQueue((prev) => [...prev, newTimer]);
     setQueue((prev) => [...prev, newTimer]);
-
-    if (!currentExercise) {
-      setCurrentExercise(newTimer);
-      setCurrentTime(timeToSeconds(duration));
-    }
 
     setNewExercise({
       name: "",
@@ -117,8 +178,24 @@ const WorkoutTimer: React.FC = () => {
       minutes: "",
       seconds: "",
     });
+  };
 
-    setShowAddModal(false);
+  const getPayload = () => {
+    const payload = {
+      timer_queue_name: newExercise.name,
+      timer_id: parseInt(timerId.toString()),
+      timer_queue_reminding_hour: parseInt(
+        newExercise.hours ? newExercise.hours : "0"
+      ),
+      timer_queue_reminding_minutes: parseInt(
+        newExercise.minutes ? newExercise.minutes : "0"
+      ),
+      timer_queue_reminding_second: parseInt(
+        newExercise.seconds ? newExercise.seconds : "0"
+      ),
+    };
+
+    return payload;
   };
 
   const handleTimeInput = (
@@ -149,26 +226,31 @@ const WorkoutTimer: React.FC = () => {
     }
   };
 
-  const deleteQueue = (indexToRemove: number) => {
-    setQueue((prevQueue) =>
-      prevQueue.filter((_, index) => index !== indexToRemove)
+  const deleteQueueTimer = async (indexToRemove: number, indexUI: number) => {
+    setIsLoading(true);
+    const response = await deleteQueue(indexToRemove);
+    setIsLoading(false);
+
+    setInitialQueue((prevQueue) =>
+      prevQueue.filter((_, index) => index !== indexUI)
     );
+    setQueue((prevQueue) => prevQueue.filter((_, index) => index !== indexUI));
   };
 
   const backButton = () => {
     if (router.canGoBack()) {
       router.back();
     } else {
-      router.push("/other");
+      router.push("/timerList");
     }
   };
 
-  const reset = () => {
+  const next = () => {
     setCurrentTime(0);
     setCurrentTime((prev) => {
       if (prev <= 1) {
         setIsRunning(false);
-        clearInterval(timerRef.current!); 
+        clearInterval(timerRef.current!);
 
         setQueue((prevQueue) => prevQueue.slice(1));
 
@@ -185,23 +267,56 @@ const WorkoutTimer: React.FC = () => {
     });
   };
 
-  // const getTimerQueue = async ()=>{
-  //   const data = await getInformationById(InformationId)
-  //   if(data == null){
-  //     router.push('/search')
-  //   }
-  //   else{
-  //     setInformation(data.data)
-  //     console.log(Information)
-  //     console.log(Information?.information_body_content)
-  //   }
-  // }
+  const reset = () => {
+    setCurrentTime(0);
+    setCurrentExercise(null);
+    setQueue(initialQueue);
+    setIsRunning(false);
+  };
+
+  const getTimerAPI = async () => {
+    console.log("HIT GET")
+    setIsLoading(true);
+    const response = await getTimerQueue(parseInt(timerId.toString()));
+    setIsLoading(false);
+    const data = response.data;
+
+    if (data) {
+      data.map((item: any) => {
+        const duration = `${item.timer_queue_reminding_hour
+          .toString()
+          .padStart(2, "0")}:${item.timer_queue_reminding_minutes
+          .toString()
+          .padStart(2, "0")}:${item.timer_queue_reminding_second
+          .toString()
+          .padStart(2, "0")}`;
+
+        const newTimer: Exercise = {
+          id: item.timer_queue_id,
+          name:
+            item.timer_queue_name.length > 10
+              ? `${item.timer_queue_name.slice(0, 10)}...`
+              : item.timer_queue_name,
+          duration,
+        };
+        console.log(newTimer);
+        setInitialQueue((prev) => [...prev, newTimer]);
+        setQueue((prev) => [...prev, newTimer]);
+      });
+    }
+  };
 
   useEffect(() => {
-    const getTimerAPI = async () => {
-      const response = await getTimerQueue(parseInt(id.toString()));
-      
-    }
+    getTimerAPI();
+
+    return () => {
+      if (sound) {
+        sound.unloadAsync();
+      }
+      if (stopTimeout) {
+        clearTimeout(stopTimeout);
+      }
+    };
   }, []);
 
   useEffect(() => {
@@ -209,6 +324,8 @@ const WorkoutTimer: React.FC = () => {
       timerRef.current = setInterval(() => {
         setCurrentTime((prev) => {
           if (prev <= 1) {
+            setTimerToaster(true);
+            playSound();
             setIsRunning(false);
             clearInterval(timerRef.current!);
 
@@ -235,12 +352,15 @@ const WorkoutTimer: React.FC = () => {
     };
   }, [isRunning, queue]);
 
+  const pressedTimerToaster = () => {
+    stopManually();
+    setTimerToaster(false);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#F39C12" />
-      <View
-        style={styles.headerContainer}
-      >
+      <View style={styles.headerContainer}>
         <Pressable style={styles.backgroundArrow} onPress={() => backButton()}>
           <MaterialIcons name="arrow-back-ios-new" size={24} color="#fff" />
         </Pressable>
@@ -253,6 +373,11 @@ const WorkoutTimer: React.FC = () => {
           <Text style={styles.timerDisplay}>
             {currentExercise ? secondsToTime(currentTime) : "00:00:00"}
           </Text>
+          {currentExercise != null ? (
+            <Pressable style={styles.skipButton} onPress={next}>
+              <Text style={styles.skipText}>Skip</Text>
+            </Pressable>
+          ) : null}
         </View>
       </View>
 
@@ -266,7 +391,7 @@ const WorkoutTimer: React.FC = () => {
               <View style={styles.alwaysRight}>
                 <Pressable
                   style={{ marginLeft: 5 }}
-                  onPress={() => deleteQueue(index)}
+                  onPress={() => deleteQueueTimer(exercise.id, index)}
                 >
                   <MaterialIcons name="delete" size={24} color="#A77800" />
                 </Pressable>
@@ -360,6 +485,22 @@ const WorkoutTimer: React.FC = () => {
           </View>
         </View>
       </Modal>
+
+      {isLoading ? <Loading /> : null}
+
+      {timerToaster && (
+        <View style={styles.errorToaster}>
+          <View style={styles.errorBox}>
+            <Text style={styles.titleNotFound}>TIMES UP!</Text>
+            <Pressable
+              onPress={() => pressedTimerToaster()}
+              style={styles.toasterContent}
+            >
+              <Text style={styles.errorText}>Okay</Text>
+            </Pressable>
+          </View>
+        </View>
+      )}
     </SafeAreaView>
   );
 };
@@ -373,7 +514,7 @@ const styles = StyleSheet.create({
     paddingTop: 40,
     paddingBottom: 20,
     backgroundColor: Colors.gymme.orange,
-    marginBottom: 15
+    marginBottom: 15,
   },
   arrowBack: {
     width: 24,
@@ -391,7 +532,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     textAlign: "center",
     fontFamily: "Poppins",
-    color: '#fff'
+    color: "#fff",
   },
   timerContainer: { alignItems: "center", marginVertical: 10 },
   timerCircle: {
@@ -411,6 +552,23 @@ const styles = StyleSheet.create({
     top: 60,
     fontWeight: "bold",
     textAlign: "center",
+  },
+  skipButton: {
+    position: "absolute",
+    bottom: 45,
+    paddingHorizontal: 25,
+    paddingVertical: 8,
+    backgroundColor: "#a77800",
+    borderRadius: 15,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  skipText: {
+    fontSize: 18,
+    color: "white",
+    fontWeight: "bold",
+    textAlign: "center",
+    fontFamily: "Poppins",
   },
   timerDisplay: {
     fontSize: 54,
@@ -544,6 +702,54 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: "#FFA500",
     marginHorizontal: 5,
+  },
+
+  errorToaster: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  toasterContent: {
+    alignItems: "center",
+    padding: 10,
+    borderRadius: 10,
+    backgroundColor: "#F39C12",
+  },
+  errorText: {
+    color: "white",
+    fontSize: 14,
+  },
+  errorBox: {
+    width: "70%",
+    padding: 20,
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  titleNotFound: {
+    fontSize: 24,
+    fontFamily: "Poppins",
+    fontWeight: "bold",
+    color: "#F39C12",
+    marginBottom: 10,
+  },
+  subheaderText: {
+    fontSize: 14,
+    fontFamily: "Poppins",
+    marginBottom: 20,
+  },
+  icon: {
+    marginBottom: 10,
+  },
+  error: {
+    fontSize: 12,
+    color: Colors.gymme.red,
+    marginBottom: 5,
   },
 });
 

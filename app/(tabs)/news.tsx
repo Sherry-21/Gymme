@@ -7,6 +7,7 @@ import {
   TextInput,
   ScrollView,
   Dimensions,
+  SafeAreaView,
 } from "react-native";
 import {
   IOScrollView,
@@ -14,12 +15,14 @@ import {
   InView,
 } from "react-native-intersection-observer";
 import NewsButton from "@/components/homeNews";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Colors } from "@/constants/Colors";
 import { getAllInformationBySearch } from "../API/GetInformationApi";
 import { parseDate } from "../helper/dateFormatter";
+import Loading from "@/components/loading";
+import { router, useFocusEffect } from "expo-router";
+import { MaterialIcons } from "@expo/vector-icons";
 
-const searchImage = require("@/assets/images/home/search.png");
 const dummy = require("@/assets/images/home/dummy img.png");
 
 export default function HomeScreen() {
@@ -27,42 +30,67 @@ export default function HomeScreen() {
   const [finalValue, setFinalValue] = useState("");
   const [news, setNews] = useState<any[]>([]);
   const [page, setPage] = useState("0");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const limit: string = "50";
+  const limit: string = "15";
 
   const scrollViewRef = useRef<IOScrollViewController>(null);
 
+  useFocusEffect(
+    useCallback(() => {
+      fetchData();
+    }, [])
+  );
+
   useEffect(() => {
-    const fetchData = async () => {
-      console.log("FINAL");
+    fetchData();
+  }, [finalValue]);
+
+  const fetchData = async () => {
+    try {
+      setIsLoading(true);
       const responseSearch = await getAllInformationBySearch(
         "0",
         limit,
         finalValue
       );
-      const dataRow = await responseSearch.data.rows;
-      console.log(page);
-      if (dataRow != null) {
-        console.log(page);
-        setNews(dataRow);
-        setPage((1).toString());
+      console.log(responseSearch);
+      if (!responseSearch || responseSearch.success == false) { 
+        throw new Error("Data not found");
+      } else {
+        const dataRow = responseSearch.data.rows;
+        if (dataRow != null) {
+          console.log(page);
+          setNews(dataRow);
+          setPage((1).toString());
+        }
       }
-    };
-    fetchData();
-  }, [finalValue]);
+      setIsLoading(false);
+    } catch (error) {
+      router.push("/errorPage");
+    }
+  };
 
   const fetchApi = async (inView: Boolean) => {
-    if (inView == true) {
-      const responseObserver = await getAllInformationBySearch(
-        page,
-        limit,
-        finalValue
-      );
-      const dataRow = await responseObserver.data.rows;
-      if (dataRow != null) {
-        setNews((prevNews) => [...prevNews, ...dataRow]);
-        setPage((parseInt(page) + 1).toString());
-        scrollViewRef.current?.scrollToEnd();
+    if (inView == true && page != "0") {
+      try {
+        const responseObserver = await getAllInformationBySearch(
+          page,
+          limit,
+          finalValue
+        );
+        if (!responseObserver || responseObserver.success == false) {
+          throw new Error("Data not found");
+        } else {
+          const dataRow = await responseObserver.data.rows;
+          if (dataRow != null) {
+            setNews((prevNews) => [...prevNews, ...dataRow]);
+            setPage((parseInt(page) + 1).toString());
+            scrollViewRef.current?.scrollToEnd();
+          }
+        }
+      } catch (error) {
+        router.push("/errorPage");
       }
     } else {
       console.log(inView);
@@ -72,61 +100,72 @@ export default function HomeScreen() {
   const handleSubmit = async () => {
     await setNews([]);
     await setFinalValue(value);
-    if (!value) {
-      const responseSearch = await getAllInformationBySearch("0", limit, value);
-      const dataRow = responseSearch.data.rows;
-      if (dataRow != null) {
-        await setNews(dataRow);
-        setPage((1).toString());
-      }
-    } else if (value == finalValue) {
-      const responseSearch = await getAllInformationBySearch("0", limit, value);
-      const dataRow = responseSearch.data.rows;
-      if (dataRow != null) {
-        await setNews(dataRow);
-        setPage((1).toString());
+    if (!value || value == finalValue) {
+      try {
+        const responseSearch = await getAllInformationBySearch(
+          "0",
+          limit,
+          value
+        );
+        if (!responseSearch || responseSearch.success == false) {
+          throw new Error("data not found");
+        }
+        const dataRow = responseSearch.data.rows;
+        if (dataRow != null) {
+          await setNews(dataRow);
+          setPage((1).toString());
+        }
+      } catch (error) {
+        router.push("/errorPage");
       }
     }
   };
 
   return (
-    <IOScrollView style={{ flex: 1, backgroundColor: Colors.gymme.background }}>
-      <ScrollView style={styles.baseColor} ref={scrollViewRef}>
-        <Image
-          style={styles.aboveImage}
-          source={require("@/assets/images/news/above image.png")}
-        ></Image>
+    <SafeAreaView style={{ flex: 1, backgroundColor: Colors.gymme.background }}>
+      <IOScrollView>
+        <ScrollView style={styles.baseColor} ref={scrollViewRef}>
+          <Image
+            style={styles.aboveImage}
+            source={require("@/assets/images/news/above image.png")}
+          ></Image>
 
-        <View style={styles.mainLayout}>
-          <View style={styles.textField}>
-            <Image style={styles.image} source={searchImage}></Image>
-            <TextInput
-              style={styles.textInput}
-              value={value}
-              onChangeText={setValue}
-              placeholder={"Search news"}
-              placeholderTextColor={Colors.gymme.placeholder}
-              underlineColorAndroid="transparent"
-              onSubmitEditing={handleSubmit}
-            ></TextInput>
+          <View style={styles.mainLayout}>
+            <View style={styles.textField}>
+              {/* <Image style={styles.image} source={searchImage}></Image> */}
+
+              <View style={{ alignItems: "center", justifyContent: "center"}}>
+                <MaterialIcons name="search" size={24} />
+              </View>
+              <TextInput
+                style={styles.textInput}
+                value={value}
+                onChangeText={setValue}
+                placeholder={"Search news"}
+                placeholderTextColor={Colors.gymme.placeholder}
+                underlineColorAndroid="transparent"
+                onSubmitEditing={handleSubmit}
+              ></TextInput>
+            </View>
+
+            {news.map((item: any, index: number) => (
+              <NewsButton
+                key={index}
+                id={item.information_id}
+                image={item.information_header_path_content}
+                title={item.information_header}
+                date={parseDate(item.information_date_created)}
+              />
+            ))}
           </View>
-
-          {news.map((item: any, index: number) => (
-            <NewsButton
-              key={index}
-              id={item.information_id}
-              image={dummy}
-              title={item.information_header}
-              date={parseDate(item.information_date_created)}
-            />
-          ))}
-        </View>
-      </ScrollView>
-      <InView
-        style={styles.intersection}
-        onChange={(inView: boolean) => fetchApi(inView)}
-      ></InView>
-    </IOScrollView>
+        </ScrollView>
+        <InView
+          style={styles.intersection}
+          onChange={(inView: boolean) => fetchApi(inView)}
+        ></InView>
+      </IOScrollView>
+      {isLoading ? <Loading /> : null}
+    </SafeAreaView>
   );
 }
 
@@ -139,7 +178,7 @@ const styles = StyleSheet.create({
   },
   baseColor: {
     backgroundColor: "#fff",
-    flex: 1,
+    // flex: 1,
   },
   mainLayout: {
     marginHorizontal: 25,

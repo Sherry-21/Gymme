@@ -48,6 +48,9 @@ export default function RootLayout() {
         <Stack.Screen name="CalenderScreen" options={{ headerShown: false }} />
         <Stack.Screen name="timerList" options={{ headerShown: false }} />
         <Stack.Screen name="viewWeightHistory" options={{ headerShown: false }} />
+        <Stack.Screen name="viewProfile" options={{ headerShown: false }} />
+        <Stack.Screen name="errorPage" options={{ headerShown: false }} />
+        <Stack.Screen name="notFound" options={{ headerShown: false }} />
       </Stack>
     </View>
   );

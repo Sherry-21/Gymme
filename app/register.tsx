@@ -1,8 +1,7 @@
 import { Link, Stack } from "expo-router";
 import {
-  Image,
+  Pressable,
   SafeAreaView,
-  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -14,12 +13,16 @@ import { useState } from "react";
 import { Colors } from "@/constants/Colors";
 import { router } from "expo-router";
 import { userRegister } from "./API/authentication";
+import { MaterialIcons } from "@expo/vector-icons";
+import Loading from "@/components/loading";
+import { setItems } from "./utils/SecureStoreChain";
 
 const user = require("@/assets/images/register/human.png");
 const phone = require("@/assets/images/register/phone.png");
 const lock = require("@/assets/images/register/lock.png");
 const emailImage = require("@/assets/images/register/email.png");
 const genderImage = require("@/assets/images/register/gender.png");
+const heightImage = require("@/assets/images/register/height.png");
 
 const genderItems = [
   { label: "Male", value: "M" },
@@ -33,10 +36,15 @@ export default function register() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [gender, setGender] = useState("");
-
+  const [height, setHeight] = useState("");
   const [emailError, setEmailError] = useState("");
   const [pnError, setPnError] = useState("");
-  const [passError, setPassError] = useState("");
+  const [heightError, setHeightError] = useState("");
+  const [passError1, setPassError1] = useState("");
+  const [passError2, setPassError2] = useState("");
+
+  const [errorToaster, setErrorToaster] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const validateEmail = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -48,14 +56,25 @@ export default function register() {
     return pnRegex.test(phoneNumber);
   };
 
+  const validateHeight = () => {
+    const pnRegex = /^\d+$/;
+    return pnRegex.test(height);
+  };
+
   const validatePass = () => {
     return password === confirmPassword;
+  };
+
+  const validatePassLength = () => {
+    return password.length !== 0;
   };
 
   const buildAccount = () => {
     const firstTest = validateEmail();
     const secondTest = validatePn();
     const thirdTest = validatePass();
+    const fourthTest = validatePassLength();
+    const fifthTest = validateHeight();
 
     if (!firstTest) {
       setEmailError("Wrong email format");
@@ -69,10 +88,22 @@ export default function register() {
       setPnError("");
     }
 
-    if (!thirdTest) {
-      setPassError("Password does not match");
+    if (!fourthTest) {
+      setPassError1("Password must not be empty");
     } else {
-      setPassError("");
+      setPassError1("");
+    }
+
+    if (!thirdTest) {
+      setPassError2("Password does not match");
+    } else {
+      setPassError2("");
+    }
+
+    if (!fifthTest) {
+      setHeightError("Must be number only");
+    } else {
+      setHeightError("");
     }
 
     const getPayload = () => {
@@ -80,46 +111,51 @@ export default function register() {
         user_email: email,
         user_gender: gender,
         user_name: username,
+        user_height: parseInt(height, 10),
         user_password: password,
         user_phone_number: phoneNumber,
-      }
-      return payload
-    }
+      };
+      return payload;
+    };
 
-    if (firstTest && secondTest && thirdTest) {
+    if (firstTest && secondTest && thirdTest && fourthTest && fifthTest) {
       const postData = async () => {
         try {
-          const response = await userRegister(getPayload())
-          if (response.success == true) {
-            router.push('/registerSuccess');
+          setIsLoading(true);
+          const response = await userRegister(getPayload());
+          setIsLoading(false);
+          if (response == null || response.success == false) {
+            throw new Error("Failed to register");
+          } else {
+            await setItems("itemKey", response.token);
+            router.push("/registerSuccess");
           }
         } catch (error) {
           console.error("Error posting data:", error);
+          setErrorToaster(true);
         }
       };
       postData();
     }
   };
 
+  const pressedErrorToaster = () => {
+    setErrorToaster(false);
+  };
 
   return (
     <SafeAreaView style={styles.baseColor}>
       <View style={styles.mainLayout}>
         <View style={styles.mainRegister}>
           <Text style={styles.headerText}>Register account</Text>
-          <Text style={styles.subText}>Create a new account to get started with our services!</Text>
+          <Text style={styles.subText}>
+            Create a new account to get started with our services!
+          </Text>
           <RegisterTextField
             placeholderText={"Username"}
             image={user}
             value={username}
             setValue={setUsername}
-          />
-          <RegisterDropDown
-            placeholderText={"Gender"}
-            image={genderImage}
-            value={gender}
-            open={false}
-            items={genderItems}
           />
           <RegisterTextField
             placeholderText={"Email"}
@@ -135,6 +171,21 @@ export default function register() {
             setValue={setPhoneNumber}
           />
           {pnError ? <Text style={styles.error}>{pnError}</Text> : null}
+          <RegisterDropDown
+            placeholderText={"Gender"}
+            image={genderImage}
+            value={gender}
+            setValue={setGender}
+            open={false}
+            items={genderItems}
+          />
+          <RegisterTextField
+            placeholderText={"Height (cm)"}
+            image={heightImage}
+            value={height}
+            setValue={setHeight}
+          />
+          {heightError ? <Text style={styles.error}>{heightError}</Text> : null}
           <RegisterTextField
             placeholderText={"Password"}
             image={lock}
@@ -142,6 +193,7 @@ export default function register() {
             setValue={setPassword}
             secure={true}
           />
+          {passError1 ? <Text style={styles.error}>{passError1}</Text> : null}
           <RegisterTextField
             placeholderText={"Confirm Password"}
             image={lock}
@@ -149,7 +201,7 @@ export default function register() {
             setValue={setConfirmPassword}
             secure={true}
           />
-          {passError ? <Text style={styles.error}>{passError}</Text> : null}
+          {passError2 ? <Text style={styles.error}>{passError2}</Text> : null}
         </View>
 
         <ButtonCustom
@@ -166,6 +218,29 @@ export default function register() {
           </Link>
         </View>
       </View>
+      {isLoading ? <Loading /> : null}
+      {errorToaster && (
+        <View style={styles.errorToaster}>
+          <View style={styles.errorBox}>
+            <MaterialIcons
+              style={styles.icon}
+              name="error"
+              size={50}
+              color="#F39C12"
+            />
+            <Text style={styles.titleNotFound}>REGISTER FAILED!!</Text>
+            <Text style={styles.subheaderText}>
+              Please try again later
+            </Text>
+            <Pressable
+              onPress={() => pressedErrorToaster()}
+              style={styles.toasterContent}
+            >
+              <Text style={styles.errorText}>Understand</Text>
+            </Pressable>
+          </View>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -214,5 +289,49 @@ const styles = StyleSheet.create({
   error: {
     fontSize: 12,
     color: Colors.gymme.red,
+    marginBottom: 5,
+  },
+
+  errorToaster: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  toasterContent: {
+    alignItems: "center",
+    padding: 10,
+    borderRadius: 10,
+    backgroundColor: "#F39C12",
+  },
+  errorText: {
+    color: "white",
+    fontSize: 14,
+  },
+  errorBox: {
+    width: "70%",
+    padding: 20,
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  titleNotFound: {
+    fontSize: 20,
+    fontFamily: "Poppins",
+    fontWeight: "bold",
+    color: "#F39C12",
+    marginBottom: 5,
+  },
+  subheaderText: {
+    fontSize: 14,
+    fontFamily: "Poppins",
+    marginBottom: 20,
+  },
+  icon: {
+    marginBottom: 10,
   },
 });

@@ -1,89 +1,104 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Pressable, Modal, StyleSheet, Alert, TouchableOpacity } from 'react-native';
-import { AntDesign } from '@expo/vector-icons';
-import axios from 'axios';
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  Pressable,
+  Modal,
+  StyleSheet,
+  Alert,
+} from "react-native";
+import RegisterDropDown from "@/components/customDropDown";
+import { AntDesign, MaterialIcons } from "@expo/vector-icons";
+import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { getProfileById } from '../API/profileApi';
-import { router } from 'expo-router';
-import { postTimer } from '../API/timerApi';
-import { getLatest, postWeight } from '../API/weightApi';
+import { getProfileById } from "../API/profileApi";
+import { router, useFocusEffect } from "expo-router";
+import { postTimer } from "../API/timerApi";
+import { getLatest, postWeight } from "../API/weightApi";
+import Loading from "@/components/loading";
+import { Colors } from "@/constants/Colors";
+import { StatusBar } from "react-native";
+import { deleteItem } from "../utils/SecureStoreChain";
 
-export default function ProfilePage (){
-  const [userId, setUserId] = useState<string>('');
-  const [gender, setGender] = useState<string>('');
-  const [age, setAge] = useState<string>('');
-  const [weight, setWeight] = useState<string>('-');
+export default function ProfilePage() {
+  const [userId, setUserId] = useState<string>("");
+  const [gender, setGender] = useState<string>("");
+  const [weight, setWeight] = useState<string>("-");
+  const [lastDate, setLastDate] = useState<Date>(new Date());
   const [showUpdateModal, setShowUpdateModal] = useState<boolean>(false);
-  const [updatedWeight, setUpdatedWeight] = useState<string>('');
+  const [updatedWeight, setUpdatedWeight] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
+  const [isPressed, setIsPressed] = useState<boolean>(false);
+  const [questionToaster, setQuestionToaster] = useState<boolean>(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchUserProfile();
+    }, [])
+  );
+
   useEffect(() => {
-    const fetchUserProfile = async () => {
-      try {
-        const response = await getProfileById();
-        const response2 = await getLatest();
-
-        const { userId, gender, age, currentWeight } = response.data;
-        const data2 = response2.data
-
-        setUserId(userId);
-        setGender(gender);
-        setAge(age);
-        setWeight(data2.user_weight ? data2.user_weight.toString() : '-');
-        
-        setIsLoading(false);
-
-      } catch (error) {
-        console.error('Error fetching profile:', error);
-        
-        if (axios.isAxiosError(error)) {
-          if (error.response) {
-            Alert.alert('Error', error.response.data.message || 'Server error');
-          } else if (error.request) {
-            Alert.alert('Error', 'No response from server');
-          } else {
-            Alert.alert('Error', 'Unable to send request');
-          }
-        } else {
-          Alert.alert('Error', 'An unexpected error occurred');
-        }
-        setIsLoading(false);
-      }
-    };
-
     fetchUserProfile();
   }, []);
+
+  const fetchUserProfile = async () => {
+    try {
+      const response = await getProfileById();
+      const response2 = await getLatest();
+      const information = response.data;
+      const data2 = response2.data;
+      if (!response || response.success == false || !response2 || response2.success == false) {
+        throw new Error("Error when load profile");
+      }
+
+      setUserId(
+        information.user_name.length > 8
+          ? `${information.user_name.slice(0, 8)}...`
+          : information.user_name
+      );
+      setGender(information.user_gender == "M" ? "Male" : "Female");
+      setWeight(data2.user_weight ? data2.user_weight.toString() : "-");
+      setLastDate(data2.user_weight_time)
+      setIsLoading(false);
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+      router.push("/errorPage");
+      setIsLoading(false);
+    }
+  };
 
   const formatDateToIsoString = (date: Date): string => {
     return date.toISOString();
   };
 
-  const formatDateToIndonesian = (date: Date): string => {
+  const formatDateToIndonesian = (dateTemp: Date): string => {
+    const date = new Date(dateTemp)
     const options: Intl.DateTimeFormatOptions = {
-      timeZone: 'Asia/Jakarta',
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-      hour12: false
+      timeZone: "Asia/Jakarta",
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour12: false,
     };
-  
-    const formatter = new Intl.DateTimeFormat('en-GB', options);
+
+    const formatter = new Intl.DateTimeFormat("en-GB", options);
     return formatter.format(date);
   };
 
-
   const handleWeightInput = (value: string) => {
-    const formattedValue = value.replace(/[^0-9.]/g, '');
+    const formattedValue = value.replace(/[^0-9.]/g, "");
     const decimalCount = (formattedValue.match(/\./g) || []).length;
     if (decimalCount > 1) return;
 
-    if (formattedValue.startsWith('.')) {
+    if (formattedValue.startsWith(".")) {
       setUpdatedWeight(`0${formattedValue}`);
       return;
     }
 
-    if (formattedValue.includes('.')) {
-      const [whole, decimal] = formattedValue.split('.');
+    if (formattedValue.includes(".")) {
+      const [whole, decimal] = formattedValue.split(".");
       if (decimal && decimal.length > 2) return;
     }
 
@@ -92,88 +107,165 @@ export default function ProfilePage (){
 
   const getPayload = () => {
     const payload = {
-      user_weight: parseInt(updatedWeight, 10),
-      user_weight_time: formatDateToIsoString(new Date())
-    }
-    return payload
+      user_weight: parseFloat(updatedWeight),
+      user_weight_time: formatDateToIsoString(new Date()),
+    };
+    return payload;
   };
 
   const handleUpdateWeight = async () => {
     if (!updatedWeight) {
-      Alert.alert('Error', 'Please enter a weight');
+      Alert.alert("Error", "Please enter a weight");
       return;
     }
 
     const weightValue = parseFloat(updatedWeight);
     if (isNaN(weightValue) || weightValue <= 0) {
-      Alert.alert('Error', 'Please enter a valid weight');
+      Alert.alert("Error", "Please enter a valid weight");
       return;
     }
 
     try {
-      const response = await postWeight(getPayload())
-
-      console.log(response.data);
+      const response = await postWeight(getPayload());
 
       await setWeight(updatedWeight);
-      
+
       setShowUpdateModal(false);
-      setUpdatedWeight('');
+      setUpdatedWeight("");
     } catch (error) {
-      console.error('Error updating weight:', error);
-      Alert.alert('Error', 'Unable to update weight');
+      console.error("Error updating weight:", error);
+      Alert.alert("Error", "Unable to update weight");
     }
   };
 
   const goToTimerList = () => {
-    router.push('/timerList')
-  }
+    router.push("/timerList");
+  };
 
   const goToCalendar = () => {
-    router.push('/CalenderScreen')
-  }
+    router.push("/CalenderScreen");
+  };
+
+  const goToBookmarked = () => {
+    router.push("/bookmarkList");
+  };
 
   const moveToWeightHistory = () => {
-    router.push('/viewWeightHistory')
-  }
+    router.push("/viewWeightHistory");
+  };
 
   if (isLoading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <Text>Loading profile...</Text>
-      </View>
-    );
+    return <Loading />;
   }
+
+  const press = () => {
+    setIsPressed(!isPressed);
+  };
+
+  const openProfile = () => {
+    router.push("/viewProfile");
+  };
+
+  const openToaster = () => {
+    setQuestionToaster(true);
+  };
+
+  const closeToaster = () => {
+    setQuestionToaster(false);
+  };
+
+  const logout = async () => {
+    await deleteItem("itemKey");
+    router.push("/");
+  };
 
   return (
     <View style={styles.container}>
+      <StatusBar backgroundColor="#ff6347" barStyle="light-content" />
       <View style={styles.header}>
         <View style={styles.headerContent}>
-        <View style={styles.welcomeContainer}>
-          <Text style={styles.welcomeText}>Welcome, </Text>
-          <Text style={styles.name}>{userId || 'User'}</Text>
+          <View style={styles.welcomeContainer}>
+            <Text style={styles.welcomeText}>Welcome, </Text>
+            <Text style={styles.name}>{userId || "User"}</Text>
+          </View>
+          <View style={styles.userInfo}>
+            {gender == "Male" ? (
+              <MaterialIcons name="male" size={20} color="#fff" />
+            ) : (
+              <MaterialIcons name="female" size={20} color="#fff" />
+            )}
+            <Text style={styles.userInfoText}>({gender || "-"})</Text>
+          </View>
         </View>
-        <View style={styles.userInfo}>
-          <AntDesign name="man" size={16} color="#fff" />
-          <Text style={styles.userInfoText}>
-            ({gender || '-'}) - {age || '-'} Years old
-          </Text>
-        </View>
+        <View style={styles.rightContainer}>
+          <View
+            style={{
+              flex: 1,
+              justifyContent: "flex-end",
+              alignItems: "flex-end",
+            }}
+          >
+            <View style={styles.iconSettings}>
+              <MaterialIcons name="settings" size={24} color={"#fff"} />
+              <Pressable onPress={press}>
+                {isPressed ? (
+                  <MaterialIcons
+                    name="keyboard-arrow-up"
+                    size={24}
+                    color={"#fff"}
+                  />
+                ) : (
+                  <MaterialIcons
+                    name="keyboard-arrow-down"
+                    size={24}
+                    color={"#fff"}
+                  />
+                )}
+              </Pressable>
+            </View>
+            {isPressed ? (
+              <View style={styles.settingDropdown}>
+                <View style={styles.settingBox}>
+                  <Pressable style={styles.settingOption} onPress={openProfile}>
+                    <MaterialIcons
+                      name="person"
+                      size={24}
+                      color={Colors.gymme.placeholder}
+                      style={{ marginRight: 15 }}
+                    />
+                    <Text style={{ fontFamily: "Poppins" }}>profile</Text>
+                  </Pressable>
+                  <View
+                    style={{ justifyContent: "center", alignItems: "center" }}
+                  >
+                    <View style={styles.line} />
+                  </View>
+                  <Pressable style={styles.settingOption} onPress={openToaster}>
+                    <MaterialIcons
+                      name="logout"
+                      size={24}
+                      color={Colors.gymme.placeholder}
+                      style={{ marginRight: 15 }}
+                    />
+                    <Text style={{ fontFamily: "Poppins" }}>logout</Text>
+                  </Pressable>
+                </View>
+              </View>
+            ) : null}
+          </View>
         </View>
       </View>
 
-     <View style={styles.containerContent}>
-
-      {/* Weight Section */}
-      <View style={styles.weightCard}>
+      <View style={styles.containerContent}>
+        <View style={styles.weightCard}>
           <View>
             <Text style={styles.weightTitle}>Current Weight</Text>
             <Text style={styles.weightInfo}>
-              {weight} kg - ( {formatDateToIndonesian(new Date())} )
+              {weight} kg - ( {formatDateToIndonesian(lastDate)} )
             </Text>
             <Pressable onPress={() => moveToWeightHistory()}>
               <Text style={styles.weightHistory}>View weight history</Text>
-            </Pressable>  
+            </Pressable>
           </View>
           <Pressable
             style={styles.updateButton}
@@ -183,194 +275,269 @@ export default function ProfilePage (){
           </Pressable>
         </View>
 
-      {/* Other Features Section */}
-      <Text style={styles.sectionTitle}>Other Feature</Text>
-      <View style={styles.otherFeatures}>
         <View style={styles.featureCard}>
-          <Text style={styles.featureText}>Workout calendar</Text>
-          <AntDesign name="calendar" size={40} color="#000" />
-          <Pressable style={styles.featureButton} onPress={goToCalendar}>
+          <Text style={styles.featureText}>Bookmarked</Text>
+          <MaterialIcons name="bookmark-outline" size={40} color="#000" />
+          <Pressable style={styles.featureButton} onPress={goToBookmarked}>
             <Text style={styles.featureButtonText}>View</Text>
           </Pressable>
         </View>
-        <View style={styles.featureCard}>
-          <Text style={styles.featureText}>Workout timer</Text>
-          <AntDesign name="clockcircleo" size={40} color="#000" />
-          <Pressable style={styles.featureButton} onPress={goToTimerList}>
-            <Text style={styles.featureButtonText}>View</Text>
-          </Pressable>
-        </View>
-      </View>
 
-      <Modal 
-        visible={showUpdateModal} 
-        animationType="slide" 
-        transparent={true}
-        statusBarTranslucent={true}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { position: 'absolute', bottom: 0 }]}>
-            <Pressable 
-              style={styles.modalCloseButton}
-              onPress={() => setShowUpdateModal(false)}
-            >
-              <AntDesign name="close" size={24} color="#333" />
+        <Text style={styles.sectionTitle}>Other Feature</Text>
+        <View style={styles.otherFeatures}>
+          <View style={styles.featureCard}>
+            <Text style={styles.featureText}>Workout calendar</Text>
+            <AntDesign name="calendar" size={40} color="#000" />
+            <Pressable style={styles.featureButton} onPress={goToCalendar}>
+              <Text style={styles.featureButtonText}>View</Text>
             </Pressable>
+          </View>
+          <View style={styles.featureCard}>
+            <Text style={styles.featureText}>Workout timer</Text>
+            <AntDesign name="clockcircleo" size={40} color="#000" />
+            <Pressable style={styles.featureButton} onPress={goToTimerList}>
+              <Text style={styles.featureButtonText}>View</Text>
+            </Pressable>
+          </View>
+        </View>
 
-            <Text style={styles.modalTitle}>Update Your Weight</Text>
-            
-            <View style={styles.inputContainer}>
-              <TextInput
-                style={styles.weightInput}
-                value={updatedWeight}
-                onChangeText={handleWeightInput}
-                keyboardType="decimal-pad"
-                placeholder="Enter new weight"
-                placeholderTextColor="#999"
-                maxLength={6} // Limit total length
-              />
-              <Text style={styles.unitText}>kg</Text>
-            </View>
-
-            <View style={styles.buttonContainer}>
+        <Modal
+          visible={showUpdateModal}
+          animationType="slide"
+          transparent={true}
+          statusBarTranslucent={true}
+        >
+          <View style={styles.modalOverlay}>
+            <View
+              style={[styles.modalContent, { position: "absolute", bottom: 0 }]}
+            >
               <Pressable
-                style={styles.cancelButton}
+                style={styles.modalCloseButton}
                 onPress={() => setShowUpdateModal(false)}
               >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
+                <AntDesign name="close" size={24} color="#333" />
               </Pressable>
-              <Pressable
-                style={[styles.updateButtonModal]}
-                onPress={handleUpdateWeight}
-              >
-                <Text style={styles.updateButtonTextModal}>Update Weight</Text>
+
+              <Text style={styles.modalTitle}>Update Your Weight</Text>
+
+              <View style={styles.inputContainer}>
+                <TextInput
+                  style={styles.weightInput}
+                  value={updatedWeight}
+                  onChangeText={handleWeightInput}
+                  keyboardType="decimal-pad"
+                  placeholder="Enter new weight"
+                  placeholderTextColor="#999"
+                  maxLength={6}
+                />
+                <Text style={styles.unitText}>kg</Text>
+              </View>
+
+              <View style={styles.buttonContainer}>
+                <Pressable
+                  style={styles.cancelButton}
+                  onPress={() => setShowUpdateModal(false)}
+                >
+                  <Text style={styles.cancelButtonText}>Cancel</Text>
+                </Pressable>
+                <Pressable
+                  style={[styles.updateButtonModal]}
+                  onPress={handleUpdateWeight}
+                >
+                  <Text style={styles.updateButtonTextModal}>
+                    Update Weight
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
+          </View>
+        </Modal>
+      </View>
+
+      {questionToaster && (
+        <View style={styles.errorToaster}>
+          <View style={styles.errorBox}>
+            <MaterialIcons
+              style={styles.icon}
+              name="help"
+              size={50}
+              color="#F39C12"
+            />
+            <Text style={styles.titleNotFound}>ARE YOU SURE?</Text>
+            <Text style={styles.subheaderText}>Logout from your account?</Text>
+            <View style={styles.buttonRow}>
+              <Pressable onPress={closeToaster} style={styles.toasterContentNo}>
+                <Text style={styles.errorTextNo}>no</Text>
+              </Pressable>
+              <Pressable onPress={logout} style={styles.toasterContentYes}>
+                <Text style={styles.errorText}>yes</Text>
               </Pressable>
             </View>
           </View>
         </View>
-      </Modal>
-      </View>  
+      )}
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  rightContainer: {
+    width: "40%",
+  },
+  iconSettings: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  settingDropdown: {
+    position: "absolute",
+    top: 60,
+    zIndex: 999,
+    elevation: 10,
+  },
+  settingBox: {
+    padding: 5,
+    backgroundColor: "#fff",
+    borderRadius: 15,
+  },
+  settingOption: {
+    flexDirection: "row",
+    paddingHorizontal: 15,
+    paddingVertical: 5,
+    alignItems: "center",
+  },
+  line: {
+    height: 1,
+    backgroundColor: Colors.gymme.placeholder,
+    width: "90%",
+    marginVertical: 5,
   },
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   header: {
-    backgroundColor: '#FFA500',
-    padding: 20,
-    paddingLeft: 30,
+    backgroundColor: "#FFA500",
+    justifyContent: "space-between",
+    flexDirection: "row",
+    paddingHorizontal: 35,
+    paddingTop: 40,
+    paddingBottom: 20,
     borderBottomLeftRadius: 50,
     borderBottomRightRadius: 50,
     marginBottom: 20,
   },
-  headerContent:{
-    paddingVertical: 10,
-    paddingHorizontal: 5,
+  headerContent: {
+    width: "60%",
   },
   welcomeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   welcomeText: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
+    fontFamily: "Poppins",
+    fontWeight: "bold",
+    color: "#fff",
   },
   name: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
-    textDecorationLine: 'underline',
+    fontFamily: "Poppins",
+    fontWeight: "bold",
+    color: "#fff",
+    textDecorationLine: "underline",
   },
   userInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginTop: 5,
   },
   userInfoText: {
     fontSize: 16,
-    color: '#fff',
+    color: "#fff",
     marginLeft: 5,
   },
   containerContent: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     paddingHorizontal: 20,
+    zIndex: -1,
   },
   weightCard: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderWidth: 1,
-    borderColor: '#000000',
+    borderColor: "#000000",
     borderRadius: 15,
-    padding: 15,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    padding: 20,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 20,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 4,
     },
     shadowOpacity: 0.3,
     shadowRadius: 6,
-    elevation: 3,
+    // elevation: 3,
   },
   weightTitle: {
-    fontWeight: 'bold',
+    fontWeight: "bold",
     fontSize: 16,
+    fontFamily: "Poppins",
     marginBottom: 5,
   },
   weightInfo: {
     fontSize: 14,
+    fontFamily: "Poppins",
     marginBottom: 5,
   },
   weightHistory: {
     fontSize: 14,
-    color: '#0000FF',
-    textDecorationLine: 'underline',
-    zIndex: 10
+    fontFamily: "Poppins",
+    color: "#0000FF",
+    textDecorationLine: "underline",
+    // zIndex: 5,
   },
   updateButton: {
-    backgroundColor: '#FFA500',
+    backgroundColor: "#FFA500",
     paddingHorizontal: 15,
     paddingVertical: 5,
     borderRadius: 15,
-    position: 'absolute',
-    bottom: 10,
-    right: 10,
+    position: "absolute",
+    bottom: 15,
+    right: 15,
   },
   updateButtonText: {
-    color: '#000000',
+    color: "#000000",
     fontSize: 12,
+    fontFamily: "Poppins",
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
+    fontFamily: "Poppins",
+    fontWeight: "bold",
+    marginBottom: 5,
   },
   otherFeatures: {
     marginTop: 10,
   },
   featureCard: {
-    flexDirection: 'column',
-    backgroundColor: '#fff',
+    flexDirection: "column",
+    backgroundColor: "#fff",
     borderWidth: 1,
-    borderColor: '#000000',
+    borderColor: "#000000",
     borderRadius: 15,
     padding: 20,
     marginBottom: 20,
-    position: 'relative',
-    shadowColor: '#000',
+    position: "relative",
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 4,
@@ -380,38 +547,40 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   featureText: {
-    fontWeight: 'bold',
+    fontWeight: "bold",
     fontSize: 16,
+    fontFamily: "Poppins",
     marginBottom: 10,
   },
   featureButton: {
-    backgroundColor: '#FFA500',
+    backgroundColor: "#FFA500",
     paddingHorizontal: 21,
     paddingVertical: 5,
     borderRadius: 15,
-    position: 'absolute',
-    bottom: 10,
-    right: 10,
+    position: "absolute",
+    bottom: 15,
+    right: 15,
   },
   featureButtonText: {
-    color: '#000000',
+    color: "#000000",
     fontSize: 12,
+    fontFamily: "Poppins",
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'flex-end', // Changed from center to flex-end
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end", // Changed from center to flex-end
   },
   modalContent: {
-    width: '100%', // Changed from 85% to full width
-    backgroundColor: '#ffffff',
+    width: "100%", // Changed from 85% to full width
+    backgroundColor: "#ffffff",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     borderBottomLeftRadius: 0, // Remove bottom radius
     borderBottomRightRadius: 0, // Remove bottom radius
     padding: 25,
-    alignItems: 'center',
-    shadowColor: '#000',
+    alignItems: "center",
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: -4, // Changed to negative value for top shadow
@@ -421,23 +590,24 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   modalCloseButton: {
-    position: 'absolute',
+    position: "absolute",
     top: 15,
     right: 15,
-    zIndex: 1,
+    // zIndex: 1,
   },
   modalTitle: {
     fontSize: 22,
-    fontWeight: 'bold',
-    color: '#333',
+    fontFamily: "Poppins",
+    fontWeight: "bold",
+    color: "#333",
     marginBottom: 20,
-    textAlign: 'center',
+    textAlign: "center",
   },
   inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '100%',
-    backgroundColor: '#f4f4f4',
+    flexDirection: "row",
+    alignItems: "center",
+    width: "100%",
+    backgroundColor: "#f4f4f4",
     borderRadius: 15,
     paddingHorizontal: 15,
     marginBottom: 20,
@@ -446,42 +616,110 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 50,
     fontSize: 18,
-    color: '#333',
+    fontFamily: "Poppins",
+    color: "#333",
   },
   unitText: {
     fontSize: 16,
-    color: '#666',
+    fontFamily: "Poppins",
+    color: "#666",
     marginLeft: 10,
   },
   buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
   },
   cancelButton: {
     flex: 1,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: "#f0f0f0",
     paddingVertical: 12,
     paddingHorizontal: 15,
     borderRadius: 15,
-    alignItems: 'center',
+    alignItems: "center",
   },
   cancelButtonText: {
-    color: '#333',
+    color: "#333",
     fontSize: 16,
-    fontWeight: 'bold',
+    fontFamily: "Poppins",
+    fontWeight: "bold",
   },
   updateButtonModal: {
     flex: 1,
-    backgroundColor: '#FFA500',
+    backgroundColor: "#FFA500",
     paddingVertical: 12,
     paddingHorizontal: 15,
     borderRadius: 15,
-    alignItems: 'center',
+    alignItems: "center",
   },
   updateButtonTextModal: {
-    color: '#333',
+    color: "#333",
     fontSize: 16,
-    fontWeight: 'bold',
+    fontFamily: "Poppins",
+    fontWeight: "bold",
+  },
+
+  errorToaster: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  buttonRow: {
+    flexDirection: "row",
+    width: "100%",
+    justifyContent: "center",
+  },
+  toasterContentNo: {
+    alignItems: "center",
+    padding: 10,
+    borderRadius: 10,
+    borderColor: "#F39C12",
+    borderWidth: 1,
+    width: "35%",
+    marginRight: 20,
+  },
+  toasterContentYes: {
+    alignItems: "center",
+    padding: 10,
+    borderRadius: 10,
+    backgroundColor: "#F39C12",
+    width: "35%",
+  },
+  errorText: {
+    color: "white",
+    fontSize: 14,
+    fontFamily: "Poppins",
+  },
+  errorTextNo: {
+    color: "#F39C12",
+    fontSize: 14,
+    fontFamily: "Poppins",
+  },
+  errorBox: {
+    width: "70%",
+    padding: 20,
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  titleNotFound: {
+    fontSize: 20,
+    fontFamily: "Poppins",
+    fontWeight: "bold",
+    color: "#F39C12",
+    marginBottom: 5,
+  },
+  subheaderText: {
+    fontSize: 14,
+    fontFamily: "Poppins",
+    marginBottom: 20,
+  },
+  icon: {
+    marginBottom: 10,
   },
 });

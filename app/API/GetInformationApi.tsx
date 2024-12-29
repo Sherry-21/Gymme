@@ -37,8 +37,10 @@ const getAllInformationBySearch = async (page:string, limit:string, name:string)
         const api = await API();
         const response = await api.get(ENDPOINTS.getAllInformationBySearch(page, limit, name));
         console.log(response)
+        console.log("HIT HERE1")
         return response.data;
     } catch (error: unknown) {
+        console.log("OR HIT HERE?")
         console.log(error)
         return null;
     }

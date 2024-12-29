@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from "react";
 import {
   FlatList,
+  Platform,
   Pressable,
+  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
 import Items from "ajv/lib/vocabularies/applicator/items";
@@ -12,6 +15,12 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { Colors } from "@/constants/Colors";
 import { router } from "expo-router";
 import { getWeight } from "./API/weightApi";
+import DateInput from "@/components/dateInput";
+import Loading from "@/components/loading";
+
+interface DateInputProps {
+  onDateChange?: (date: string) => void;
+}
 
 const backButton = () => {
   if (router.canGoBack()) {
@@ -21,37 +30,135 @@ const backButton = () => {
   }
 };
 
-const updateTime = (user_weight_time:any) => {
-    let date = new Date(user_weight_time)
-    const options: Intl.DateTimeFormatOptions = {
-      timeZone: 'Asia/Jakarta',
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false
-    };
-    const formatter = new Intl.DateTimeFormat('en-GB', options);
-    const formattedDate = formatter.format(date);
+const updateTime = (user_weight_time: any) => {
+  let date = new Date(user_weight_time);
+  const options: Intl.DateTimeFormatOptions = {
+    timeZone: "Asia/Jakarta",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  };
+  const formatter = new Intl.DateTimeFormat("en-GB", options);
+  const formattedDate = formatter.format(date);
 
-    return formattedDate
-}
+  return formattedDate;
+};
 
 const viewWeightHistory = () => {
   const [historyData, SetHistoryData]: any = useState([]);
 
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [isFocused, setIsFocused] = useState(false);
+  const [isFocused2, setIsFocused2] = useState(false);
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorToaster, setErrorToaster] = useState(false);
+
+  const formatDateFrom = (text: string) => {
+    let numbers = text.replace(/[^\d]/g, "");
+    if (numbers.length >= 2) {
+      numbers = numbers.slice(0, 2) + "/" + numbers.slice(2);
+    }
+    if (numbers.length >= 5) {
+      numbers = numbers.slice(0, 5) + "/" + numbers.slice(5);
+    }
+    numbers = numbers.slice(0, 10);
+    console.log(numbers);
+    setDateFrom(numbers);
+  };
+
+  const formatDateTo = (text: string) => {
+    let numbers = text.replace(/[^\d]/g, "");
+    if (numbers.length >= 2) {
+      numbers = numbers.slice(0, 2) + "/" + numbers.slice(2);
+    }
+    if (numbers.length >= 5) {
+      numbers = numbers.slice(0, 5) + "/" + numbers.slice(5);
+    }
+    numbers = numbers.slice(0, 10);
+    setDateTo(numbers);
+  };
+
+  const formatDate = (date: Date) => {
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+
+    return `${day}-${month}-${year}`;
+  };
+
+  const searchWithFilter = async (date1: string, date2: string) => {
+    if(!date1 || !date2) {
+      setErrorToaster(true);
+      return;
+    }
+    
+    const [day, month, year] = date1.split("/").map(Number);
+    const [day2, month2, year2] = date2.split("/").map(Number);
+
+    if (month < 0 || month > 12 || month2 < 0 || month2 > 12) {
+      setErrorToaster(true);
+    } else {
+      const firstDate = new Date(year, month, 1).getDate();
+      const lastDate = new Date(year, month + 1, 0).getDate();
+      const firstDate2 = new Date(year2, month2, 1).getDate();
+      const lastDate2 = new Date(year2, month2 + 1, 0).getDate();
+
+      if (
+        day < firstDate ||
+        day > lastDate ||
+        day2 < firstDate2 ||
+        day2 > lastDate2
+      ) {
+        setErrorToaster(true);
+      } else {
+        const dateFilter1 = `${day}-${month}-${year}`;
+        const dateFilter2 = `${day2}-${month2}-${year2}`;
+        setIsLoading(true);
+        const response = await getWeight(dateFilter1, dateFilter2);
+        setIsLoading(false);
+        SetHistoryData("");
+        let row = response.data;
+        console.log(row);
+        if (row != null && row.length !== 0) {
+          const updatedRows = row.map((item: any) => ({
+            ...item,
+            user_weight_time: updateTime(item.user_weight_time),
+          }));
+          SetHistoryData((prev: any) => [...prev, ...updatedRows]);
+        }
+      }
+    }
+  };
+
+  const pressedErrorToaster = () => {
+    setErrorToaster(false);
+  };
+
   useEffect(() => {
     const fetchWeightHistory = async () => {
       try {
-        const response = await getWeight();
-        console.log(response);
-        let row = response.data.rows;        
-        const updatedRows = row.map((item:any) => ({
+        setIsLoading(true);
+        console.log("WKWKWK");
+        const now = new Date();
+        const firstDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        const lastDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        const response = await getWeight(
+          formatDate(firstDate),
+          formatDate(lastDate)
+        );
+        setIsLoading(false);
+        console.log(response.data);
+        let row = response.data;
+        const updatedRows = row.map((item: any) => ({
           ...item,
           user_weight_time: updateTime(item.user_weight_time),
         }));
-        console.log(updatedRows)
+        console.log(updatedRows);
         SetHistoryData((prev: any) => [...prev, ...updatedRows]);
         console.log(historyData);
       } catch (error) {
@@ -64,7 +171,7 @@ const viewWeightHistory = () => {
   }, []);
 
   return (
-    <ScrollView style={styles.mainContainer}>
+    <SafeAreaView style={styles.mainContainer}>
       <View style={styles.headerContainer}>
         <Pressable style={styles.backgroundArrow} onPress={() => backButton()}>
           <MaterialIcons name="arrow-back-ios-new" size={24} color="#fff" />
@@ -73,23 +180,168 @@ const viewWeightHistory = () => {
         <Text style={styles.headerTitle}>Weight History</Text>
       </View>
 
-      {historyData.map((item: any, index: number) => (
-        <Pressable key={index}>
-          <View style={styles.entryContainer}>
-            <Text style={styles.icon}>🏋️</Text>
-            <View style={styles.detail}>
-              <Text style={styles.Weight}>{item.user_weight}</Text>
-              <Text style={styles.Date}>{item.user_weight_time}</Text>
-            </View>
+      <View style={styles.wrapper}>
+        <View
+          style={[
+            styles.container,
+            isFocused && styles.focusedContainer,
+            dateFrom && styles.filledContainer,
+          ]}
+        >
+          <View style={styles.labelContainer}>
+            <Text
+              style={[
+                styles.label,
+                (isFocused || dateFrom) && styles.floatingLabel,
+              ]}
+            >
+              From
+            </Text>
           </View>
+          <TextInput
+            style={styles.input}
+            value={dateFrom}
+            onChangeText={formatDateFrom}
+            keyboardType="numeric"
+            maxLength={10}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
+            placeholder={isFocused || dateFrom ? "dd/mm/yyyy" : ""}
+            placeholderTextColor="rgba(107, 114, 128, 0.5)"
+          />
+          <View style={styles.iconContainer}>
+            <MaterialIcons name="calendar-month" size={20} />
+          </View>
+        </View>
+
+        <View
+          style={[
+            styles.container,
+            isFocused2 && styles.focusedContainer,
+            dateTo && styles.filledContainer,
+            { marginLeft: 10 },
+          ]}
+        >
+          <View style={styles.labelContainer}>
+            <Text
+              style={[
+                styles.label,
+                (isFocused2 || dateTo) && styles.floatingLabel,
+              ]}
+            >
+              To
+            </Text>
+          </View>
+          <TextInput
+            style={styles.input}
+            value={dateTo}
+            onChangeText={formatDateTo}
+            keyboardType="numeric"
+            maxLength={10}
+            onFocus={() => setIsFocused2(true)}
+            onBlur={() => setIsFocused2(false)}
+            placeholder={isFocused2 || dateTo ? "dd/mm/yyyy" : ""}
+            placeholderTextColor="rgba(107, 114, 128, 0.5)"
+          />
+          <View style={styles.iconContainer}>
+            <MaterialIcons name="calendar-month" size={20} />
+          </View>
+        </View>
+
+        <Pressable
+          style={styles.searchCircle}
+          onPress={() => {
+            searchWithFilter(dateFrom, dateTo);
+          }}
+        >
+          <MaterialIcons style={styles.searchIcon} name="search" size={20} />
         </Pressable>
-      ))}
-    </ScrollView>
+      </View>
+      {historyData != null && historyData.length !== 0 ? (
+        <ScrollView>
+          {historyData.map((item: any, index: number) => (
+            <Pressable key={index}>
+              <View style={styles.entryContainer}>
+                <Text style={styles.icon}>🏋️</Text>
+                <View style={styles.detail}>
+                  <View>
+                    <Text style={styles.Weight}>{item.user_weight}</Text>
+                    {item.user_bmi < 20 && (
+                      <Text style={[styles.bmiStatus, { color: "red" }]}>
+                        Underweight
+                      </Text>
+                    )}
+                    {item.user_bmi >= 20 && item.user_bmi < 25 && (
+                      <Text style={[styles.bmiStatus, { color: "green" }]}>
+                        Normal Weight
+                      </Text>
+                    )}
+                    {item.user_bmi >= 25 && item.user_bmi < 30 && (
+                      <Text style={[styles.bmiStatus, { color: "orange" }]}>
+                        Overweight
+                      </Text>
+                    )}
+                    {item.user_bmi >= 30 && item.user_bmi < 40 && (
+                      <Text style={[styles.bmiStatus, { color: "red" }]}>
+                        Obese
+                      </Text>
+                    )}
+                    {item.user_bmi >= 40 && (
+                      <Text style={[styles.bmiStatus, { color: "red" }]}>
+                        Severely Obese
+                      </Text>
+                    )}
+                  </View>
+                  <View
+                    style={{
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Text style={styles.Date}>{item.user_weight_time}</Text>
+                  </View>
+                </View>
+              </View>
+            </Pressable>
+          ))}
+        </ScrollView>
+      ) : (
+        <View style={styles.emptyStateContainer}>
+          <Text style={styles.emptyStateText}>No data found</Text>
+          <Text style={styles.emptyStateSubtext}>
+            you do not have any weight update at the specific time range
+          </Text>
+        </View>
+      )}
+
+      {isLoading ? <Loading /> : null}
+      {errorToaster && (
+        <View style={styles.errorToaster}>
+          <View style={styles.errorBox}>
+            <MaterialIcons
+              style={styles.iconToaster}
+              name="error"
+              size={50}
+              color="#F39C12"
+            />
+            <Text style={styles.titleNotFound}>INVALID DATE!!</Text>
+            <Text style={styles.subheaderText}>Please input a valid date</Text>
+            <Pressable
+              onPress={() => pressedErrorToaster()}
+              style={styles.toasterContent}
+            >
+              <Text style={styles.errorText}>Try again</Text>
+            </Pressable>
+          </View>
+        </View>
+      )}
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   mainContainer: {
+    flex: 1,
     backgroundColor: "#fff",
   },
   headerContainer: {
@@ -122,8 +374,9 @@ const styles = StyleSheet.create({
   entryContainer: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
     paddingVertical: 10,
-    paddingHorizontal: 25
+    paddingHorizontal: 25,
   },
   icon: {
     fontSize: 40,
@@ -135,19 +388,172 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   Weight: {
-    marginLeft: 10,
-    fontSize: 20,
+    fontSize: 16,
     fontWeight: "bold",
+    fontFamily: "Poppins"
   },
   Date: {
     marginRight: 15,
-    fontSize: 18,
+    fontSize: 16,
     color: "#666",
+    fontFamily: "Poppins"
   },
   divider: {
     height: 1,
     backgroundColor: "#fff",
     marginHorizontal: 20,
+  },
+  bmiStatus: {
+    fontFamily: "Poppins",
+    fontSize: 14
+  },
+
+  //filter
+  wrapper: {
+    marginVertical: 12,
+    flexDirection: "row",
+    marginHorizontal: 25,
+  },
+  container: {
+    width: "39%",
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    borderRadius: 8,
+    backgroundColor: "white",
+  },
+  focusedContainer: {
+    borderColor: "#F39C12",
+    borderWidth: 1,
+    shadowColor: "#F39C12",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  filledContainer: {
+    borderColor: "#F39C12",
+  },
+  labelContainer: {
+    position: "absolute",
+    left: 5,
+    right: 8,
+    top: -8,
+    zIndex: 1,
+  },
+  label: {
+    position: "absolute",
+    left: 3,
+    top: 18,
+    fontSize: 15,
+    color: "#6B7280",
+    backgroundColor: "transparent",
+    paddingHorizontal: 4,
+    fontFamily: "Poppins"
+  },
+  floatingLabel: {
+    top: -4,
+    fontSize: 15,
+    color: "black",
+    backgroundColor: "white",
+    fontFamily: "Poppins"
+  },
+  input: {
+    flex: 1,
+    height: "100%",
+    width: "50%",
+    paddingHorizontal: 10,
+    fontSize: 14,
+    paddingTop: 8,
+    color: "#374151",
+    fontFamily: "Poppins"
+  },
+  iconContainer: {
+    paddingVertical: 12,
+    paddingHorizontal: 3,
+    height: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  searchCircle: {
+    alignItems: "flex-end",
+    justifyContent: "center",
+    flex: 1,
+  },
+  searchIcon: {
+    padding: 10,
+    borderRadius: 50,
+    backgroundColor: "#rgba(136, 136, 136, 0.5)",
+  },
+
+  errorToaster: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  toasterContent: {
+    alignItems: "center",
+    padding: 10,
+    borderRadius: 10,
+    backgroundColor: "#F39C12",
+  },
+  errorText: {
+    color: "white",
+    fontSize: 14,
+  },
+  errorBox: {
+    width: "70%",
+    padding: 20,
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  titleNotFound: {
+    fontSize: 20,
+    fontFamily: "Poppins",
+    fontWeight: "bold",
+    color: "#F39C12",
+    marginBottom: 5,
+  },
+  subheaderText: {
+    fontSize: 14,
+    fontFamily: "Poppins",
+    marginBottom: 20,
+  },
+  iconToaster: {
+    marginBottom: 10,
+  },
+  error: {
+    fontSize: 12,
+    color: Colors.gymme.red,
+    marginBottom: 5,
+  },
+
+  emptyStateContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 25,
+    height: "100%",
+  },
+  emptyStateText: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#333",
+    marginBottom: 10,
+    fontFamily: "Poppins",
+  },
+  emptyStateSubtext: {
+    fontSize: 16,
+    color: "#666",
+    fontFamily: "Poppins",
+    textAlign: "center",
   },
 });
 

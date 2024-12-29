@@ -4,7 +4,8 @@ const ENDPOINTS = {
     getTimer: () => `api/timer`,
     getTimerQueue:(id:number) =>`/api/timer/queue/${id}`,
     deleteQueue: (id:number) => `/api/timer/queue/${id}`,
-    insertQueue: (weight_id:number) => `api/timer/queue`,
+    deleteTimer: (id:number) => `api/timer/delete/${id}`,
+    insertQueue: () => `api/timer/queue`,
     insertTimer: () => `api/timer`
 }
 
@@ -47,6 +48,7 @@ const deleteQueue = async (id:number) => {
     try {
         const api = await API();
         const response = await api.delete(ENDPOINTS.deleteQueue(id));
+        console.log(response.data)
         return response.data;
     } catch (error: unknown) {
         console.log(error)
@@ -54,13 +56,16 @@ const deleteQueue = async (id:number) => {
     }
 };
 
-const insertQueue = async (id:number) => {
+const insertQueue = async (id:number, payload:Object) => {
     try {
+        console.log(id)
+        console.log(payload)
         const api = await API();
-        const response = await api.post(ENDPOINTS.insertQueue(id));
+        const response = await api.post(ENDPOINTS.insertQueue(), payload);
         return response.data;
     } catch (error: unknown) {
         console.log(error)
+        console.log("PULO")
         return null;
     }
 };
@@ -76,8 +81,15 @@ const insertTimer = async () => {
     }
 };
 
-const deleteTimer = async () => {
-
+const deleteTimer = async (id:number) => {
+    try {
+        const api = await API();
+        const response = await api.delete(ENDPOINTS.deleteTimer(id));
+        return response.data;
+    } catch (error: unknown) {
+        console.log(error)
+        return null;
+    }
 }
 
 export {getTimer, postTimer, deleteTimer, getTimerQueue, deleteQueue, insertQueue, insertTimer}

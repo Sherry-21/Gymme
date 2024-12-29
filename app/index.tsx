@@ -6,6 +6,7 @@ import {
   Image,
   StatusBar,
   SafeAreaView,
+  Pressable,
 } from "react-native";
 import Entypo from "@expo/vector-icons/Entypo";
 import * as SplashScreen from "expo-splash-screen";
@@ -16,20 +17,27 @@ import { Link } from "expo-router";
 import { Colors } from "@/constants/Colors";
 import create_server from "@/helper/createServer";
 import { router } from "expo-router";
-import {getSecureItem, saveSecureItem} from "@/app/utils/SessionKeyChain";
-import {getItems, setItems} from "@/app/utils/SecureStoreChain";
-import {userLogin} from "./API/authentication";
+import { getSecureItem, saveSecureItem } from "@/app/utils/SessionKeyChain";
+import { getItems, setItems } from "@/app/utils/SecureStoreChain";
+import { userLogin } from "./API/authentication";
+import { MaterialIcons } from "@expo/vector-icons";
+import Loading from "@/components/loading";
+
 SplashScreen.preventAutoHideAsync();
 
 const lock = require("@/assets/images/login/lock.png");
 const emailImage = require("@/assets/images/login/email.png");
 
 export default function App() {
-  // create_server();
-  
+
   const [appIsReady, setAppIsReady] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [errorToaster, setErrorToaster] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const [emailError, setEmailError] = useState("");
+  const [passError, setPassError] = useState("");
 
   useEffect(() => {
     async function prepare() {
@@ -47,9 +55,9 @@ export default function App() {
   const getPayload = () => {
     const payload = {
       user_email: email,
-      user_password: password
-    }
-    return payload
+      user_password: password,
+    };
+    return payload;
   };
 
   const onLayoutRootView = useCallback(async () => {
@@ -62,26 +70,55 @@ export default function App() {
     return null;
   }
 
+  const validateEmail = () => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validatePassLength = () => {
+    return password.length !== 0;
+  }
+
   const validateAccount = async () => {
-    console.log(process.env.NODE_ENV);
+    const firstTest = validateEmail();
+    const secondTest = validatePassLength();
+
     const postData = async () => {
       try {
-        const response = await userLogin(getPayload())
-        console.log(response)
-        if (response.success == false) {
-          console.log("WKWK")
+        setIsLoading(true)
+        const response = await userLogin(getPayload());
+        setIsLoading(false)
+        if (response == null || response.success == false) {
+          throw new Error("Invalid login credentials");
+        } else {
+          await setItems("itemKey", response.token);
         }
-        else {
-          await setItems("itemKey", response.token)
-          // await saveSecureItem("itemKey", response.token);
-          router.push({pathname: '/test'});
-        }
+
+        router.push('/test')
       } catch (error) {
-        console.error("Error login", error);
+        setErrorToaster(true);
       }
     };
 
-    postData();
+    if (!firstTest) {
+      setEmailError("Wrong email format");
+    } else {
+      setEmailError("");
+    }
+
+    if (!secondTest) {
+      setPassError("Password must not be empty");
+    } else {
+      setPassError("")
+    }
+
+    if(firstTest && secondTest) {
+      postData();
+    }
+  };
+
+  const pressedErrorToaster = () => {
+    setErrorToaster(false);
   };
 
   return (
@@ -94,7 +131,7 @@ export default function App() {
       <View style={styles.mainLayout}>
         <Image
           style={styles.loginLogo}
-          source={require("@/assets/images/login/login logo.png")}
+          source={require("@/assets/images/login/login logo.svg")}
         />
 
         <View style={styles.mainLogin}>
@@ -105,6 +142,7 @@ export default function App() {
             value={email}
             setValue={setEmail}
           />
+          {emailError ? <Text style={styles.error}>{emailError}</Text> : null}
           <LoginTextField
             placeholderText={"Password"}
             image={lock}
@@ -112,6 +150,7 @@ export default function App() {
             setValue={setPassword}
             secure={true}
           />
+          {passError ? <Text style={styles.error}>{passError}</Text> : null}
         </View>
 
         <ButtonCustom
@@ -128,6 +167,31 @@ export default function App() {
           </Link>
         </View>
       </View>
+      {
+        isLoading? (<Loading/>) : null
+      }
+      {errorToaster && (
+        <View style={styles.errorToaster}>
+          <View style={styles.errorBox}>
+            <MaterialIcons
+              style={styles.icon}
+              name="error"
+              size={50}
+              color="#F39C12"
+            />
+            <Text style={styles.titleNotFound}>NOT FOUND!!</Text>
+            <Text style={styles.subheaderText}>
+              Please input a valid credential
+            </Text>
+            <Pressable
+              onPress={() => pressedErrorToaster()}
+              style={styles.toasterContent}
+            >
+              <Text style={styles.errorText}>Try again</Text>
+            </Pressable>
+          </View>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -168,5 +232,53 @@ const styles = StyleSheet.create({
     textDecorationLine: "underline",
     textDecorationColor: Colors.gymme.blue,
     color: Colors.gymme.blue,
+  },
+
+  errorToaster: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  toasterContent: {
+    alignItems: "center",
+    padding: 10,
+    borderRadius: 10,
+    backgroundColor: "#F39C12",
+  },
+  errorText: {
+    color: "white",
+    fontSize: 14,
+  },
+  errorBox: {
+    width: '70%',
+    padding: 20,
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  titleNotFound: {
+    fontSize: 20,
+    fontFamily: "Poppins",
+    fontWeight: "bold",
+    color: "#F39C12",
+    marginBottom: 5,
+  },
+  subheaderText: {
+    fontSize: 14,
+    fontFamily: "Poppins",
+    marginBottom: 20,
+  },
+  icon: {
+    marginBottom: 10,
+  },
+  error: {
+    fontSize: 12,
+    color: Colors.gymme.red,
+    marginBottom: 5
   },
 });

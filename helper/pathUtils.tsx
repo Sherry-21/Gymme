@@ -7,11 +7,19 @@ const searchResultHelper = (props:any) => {
 }
 
 const eqDetailResultHelper = (props:any) => {
-    return `/${props.path}?name=${props.name}&muscle=${props.muscle}`;
+    return `/equipmentDetail?muscleId=${props.muscleId}`;
 }
 
 const timerHelper = (props:any) => {
-    return `${props.path}?timerId=${props.id}`;
+    return `/${props.path}?timerId=${props.id}`;
 }
 
-export {newsPathHelper, searchResultHelper, eqDetailResultHelper, timerHelper};
+const errorHelper = (props:any) => {
+    return `/errorPage?name=${props.name}`
+}
+
+const equipmentHelper = (props:any) => {
+    return `/searchResult?equipmentId=${props.id}`
+}
+
+export {newsPathHelper, searchResultHelper, eqDetailResultHelper, timerHelper, errorHelper, equipmentHelper};

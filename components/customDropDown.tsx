@@ -8,6 +8,9 @@ const CustomDropDown = (props:any) => {
   const [value, setValue] = useState(props.value);
   const [items, setItems] = useState(props.items);
 
+  const test = () => {
+    console.log(value)
+  }
   return(
     <View style={styles.textField}>
       <Image style={styles.image} source={props.image}></Image>
@@ -18,6 +21,7 @@ const CustomDropDown = (props:any) => {
         items = {items}
         setOpen = {setOpen}
         setValue = {setValue}
+        onChangeValue={props.setValue}
         placeholder= {props.placeholderText}
         containerStyle = {{flex : 1}}
         dropDownContainerStyle = {{backgroundColor:'white', zIndex : 10, position:'absolute', top: 45}}
@@ -31,7 +35,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     borderBottomColor: Colors.gymme.placeholder,
     borderBottomWidth: 2,
-    marginBottom: 10,
+    marginBottom: 8,
     zIndex: 10
   },
   image: {
@@ -41,7 +45,6 @@ const styles = StyleSheet.create({
     resizeMode: 'contain'
   },
   dropdownPicker: {
-    // color: Colors.gymme.placeholder,
     zIndex: 10,
     padding: 10,
     fontSize: 14,

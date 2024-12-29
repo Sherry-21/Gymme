@@ -1,14 +1,14 @@
-import { Image, StyleSheet, Text, View } from "react-native";
+import { Image, SafeAreaView, StyleSheet, Text, View } from "react-native";
 import ButtonCustom from '@/components/button';
 import { router } from "expo-router";
 
 export default function registerSuccess() {
     const moveToNewsPage = () => {
-        router.push('/indexes')
+        router.push('/news')
     }
 
     return(
-        <View style={styles.baseColor}>
+        <SafeAreaView style={styles.baseColor}>
             <View style={styles.mainLayout}>
                 <Image style = {styles.successLogo} source = {require('@/assets/images/registerSuccess/success.png')}></Image>
                 <Text style={styles.headerText}>Register Success</Text>
@@ -16,7 +16,7 @@ export default function registerSuccess() {
                     <ButtonCustom width = {258} padding = {15} text = {'Home page'} parent={moveToNewsPage}/>
                 </View>
             </View>
-        </View>
+        </SafeAreaView>
     );
 }
 

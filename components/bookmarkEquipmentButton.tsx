@@ -1,23 +1,24 @@
 import { Colors } from "@/constants/Colors";
 import { router, useRouter } from "expo-router";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
-import { newsPathHelper } from "@/helper/pathUtils";
+import { eqDetailResultHelper, newsPathHelper } from "@/helper/pathUtils";
 import { useState } from "react";
 
 const defaultImage = require("@/assets/images/default/default-logo.jpg");
 
-const NewsButton = (props: any) => {
+const BookmarkButton = (props: any) => {
   const [imageError, setImageError] = useState(false);
 
   const movePage = () => {
-    router.push(newsPathHelper({ path: "newsDetail", id: props.id }) as any);
+    console.log(props.id);
+    router.push(eqDetailResultHelper({ muscleId: props.id }) as any);
   };
 
   const isError = () => {
     console.log("error bos")
     setImageError(true);
   };
-  
+
   return (
     <Pressable style={styles.box} onPress={movePage}>
       {imageError ? (
@@ -34,9 +35,10 @@ const NewsButton = (props: any) => {
           onError={isError}
         ></Image>
       )}
+
       <View style={styles.rightContainer}>
-        <Text style={styles.title}>{props.title}</Text>
-        <Text style={styles.date}>{props.date}</Text>
+        <Text style={styles.title}>{props.name}</Text>
+        <Text style={styles.subText}>{props.subText}</Text>
       </View>
     </Pressable>
   );
@@ -62,7 +64,7 @@ const styles = StyleSheet.create({
   image: {
     width: 80,
     height: 80,
-    resizeMode: "contain",
+    resizeMode: "cover",
     marginRight: 15,
   },
   textInput: {
@@ -79,9 +81,9 @@ const styles = StyleSheet.create({
     flex: 1,
     marginBottom: 3,
   },
-  date: {
+  subText: {
     color: Colors.gymme.placeholder,
-    fontSize: 12,
+    fontSize: 13,
     fontFamily: "Poppins",
   },
   rightContainer: {
@@ -89,4 +91,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default NewsButton;
+export default BookmarkButton;

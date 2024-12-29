@@ -1,7 +1,7 @@
 import CustomSearchHistory from "@/components/customSearchHistory";
 import { Colors } from "@/constants/Colors";
-import { router } from "expo-router";
-import { useEffect, useState } from "react";
+import { router, useFocusEffect } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
 import {
   Image,
   Pressable,
@@ -12,52 +12,107 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { searchResultHelper } from "@/helper/pathUtils";
+import { equipmentHelper, searchResultHelper } from "@/helper/pathUtils";
+import { MaterialIcons } from "@expo/vector-icons";
+import {
+  deleteSearchHistory,
+  getPageBySearch,
+  getSearchHistory,
+} from "../API/searchApi";
+import { FlatList } from "react-native-gesture-handler";
+import Loading from "@/components/loading";
 
-const searchImage = require("@/assets/images/search/search.png");
 const aiImage = require("@/assets/images/search/aiImage.png");
 const dummy = require("@/assets/images/home/dummy img.png");
+
+type SearchItem = {
+  user_id: string;
+  search_key: string;
+  date_search: string;
+  equipment_search_history_id: number;
+};
 
 export default function SearchScreen() {
   const [value, setValue] = useState("");
   const [tempValue, setTempValue] = useState("");
-  const [search, setSearch] = useState<string[]>([]);
+  const [search, setSearch] = useState<SearchItem[]>([]);
   const [searchItem, setSearchItem]: any = useState([]);
 
-  useEffect(() => {
-    console.log(value);
+  const [isLoading, setIsLoading] = useState(false);
 
-    setSearch(["hello", "test", "wkkw"]);
-    return () => {
-      console.log("UNMOUNT");
-    };
+  useFocusEffect(
+    useCallback(() => {
+      fetchSearchHistory();
+    }, [])
+  );
+
+  useEffect(() => {
+    fetchSearchHistory();
   }, []);
+
+  const fetchSearchHistory = async () => {
+    try {
+      setIsLoading(true);
+      const response = await getSearchHistory();
+      setIsLoading(false);
+      if (response.success == false) {
+        throw new Error("Error get history");
+      }
+      const data = response.data;
+      setSearch(data);
+    } catch (error) {
+      console.error(error);
+      router.push("/errorPage");
+    }
+  };
+
+  const getSearchValue = async (value: string) => {
+    try {
+      setIsLoading(true);
+      const response = await getPageBySearch(value);
+      setIsLoading(false);
+      console.log(response);
+      if (response.success == false) {
+        throw new Error("Error get history");
+      }
+      const data = response.data;
+      setSearchItem(data);
+    } catch (error) {
+      console.error(error);
+      router.push("/errorPage");
+    }
+  };
 
   const aiLens = () => {
     router.push("/aiLens");
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setValue(tempValue);
-    setSearchItem(["benchpress", "test2", "test3"]);
+    if (tempValue.length === 0) {
+      await fetchSearchHistory();
+    } else {
+      await getSearchValue(tempValue);
+    }
   };
 
-  const historyPressed = (valueHistory: string) => {
-    setTempValue(valueHistory)
+  const historyPressed = async (valueHistory: string) => {
+    setTempValue(valueHistory);
     setValue(valueHistory);
-    setSearchItem(["test"]);
+    await getSearchValue(valueHistory);
   };
 
-  const deleteSearch = (itemToDelete: string) => {
+  const equipmentPressed = (idEq: number) => {
+    router.push(equipmentHelper({ id: idEq }) as any);
+  };
+
+  const deleteHistory = async (itemToDelete: number) => {
     setSearch((prevSearch) =>
-      prevSearch.filter((item) => item !== itemToDelete)
+      prevSearch.filter(
+        (item) => item.equipment_search_history_id !== itemToDelete
+      )
     );
-  };
-
-  const movePage = () => {
-    router.push(
-      searchResultHelper({ path: "searchResult", name: "lolzzz" }) as any
-    );
+    const response = await deleteSearchHistory(itemToDelete);
   };
 
   return (
@@ -65,7 +120,9 @@ export default function SearchScreen() {
       <ScrollView style={styles.mainLayout}>
         <View style={styles.container}>
           <View style={styles.textField}>
-            <Image style={styles.searchImage} source={searchImage}></Image>
+            <View style={{ alignItems: "center", justifyContent: "center" }}>
+              <MaterialIcons name="search" size={24} />
+            </View>{" "}
             <TextInput
               style={styles.textInput}
               value={tempValue}
@@ -84,27 +141,49 @@ export default function SearchScreen() {
         <View style={styles.historyContainer}>
           {value ? (
             searchItem.map((item: any) => (
-              <Pressable style={styles.box} onPress={() => {}}>
+              <Pressable
+                style={styles.box}
+                onPress={() => equipmentPressed(item.EquipmentId)}
+              >
                 <Image style={styles.image} source={dummy}></Image>
-                <Text style={styles.textSearch}>{item}</Text>
+                <Text style={styles.textSearch}>{item.EquipmentName}</Text>
               </Pressable>
             ))
           ) : (
-            <>
+            <View>
               <Text style={styles.headerSearch}>Recent Search</Text>
-              {search.map((item: any) => (
-                <Pressable onPress={() => historyPressed(item)}>
-                  <CustomSearchHistory
-                    key={item}
-                    parent={deleteSearch}
-                    text={item}
-                  />
-                </Pressable>
-              ))}
-            </>
+              {search.map((item: any) => {
+                if (item.search_key.length === 0) {
+                  return;
+                }
+                return (
+                  <Pressable onPress={() => historyPressed(item.search_key)}>
+                    <View style={styles.historyField}>
+                      <View style={styles.leftItem}>
+                        <MaterialIcons
+                          style={{ margin: 10 }}
+                          name="schedule"
+                          size={26}
+                        />
+                        <Text style={styles.text}>{item.search_key}</Text>
+                      </View>
+
+                      <Pressable
+                        onPress={() =>
+                          deleteHistory(item.equipment_search_history_id)
+                        }
+                      >
+                        <MaterialIcons name="close" size={25} />
+                      </Pressable>
+                    </View>
+                  </Pressable>
+                );
+              })}
+            </View>
           )}
         </View>
       </ScrollView>
+      {isLoading ? <Loading /> : null}
     </SafeAreaView>
   );
 }
@@ -115,21 +194,23 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.gymme.background,
   },
   image: {
-    width: 70,
-    height: 70,
+    width: 80,
+    height: 80,
     resizeMode: "contain",
     marginRight: 15,
   },
   textSearch: {
+    flex: 1,
     marginLeft: 10,
-    fontSize: 18,
+    fontSize: 16,
     fontFamily: "Poppins",
+    fontWeight: "bold",
   },
   box: {
     flexDirection: "row",
     width: "100%",
     paddingHorizontal: 20,
-    paddingVertical: 15,
+    paddingVertical: 20,
     backgroundColor: Colors.gymme.background,
     alignItems: "center",
     borderRadius: 15,
@@ -182,5 +263,28 @@ const styles = StyleSheet.create({
   },
   historyContainer: {
     marginTop: 15,
+  },
+
+  //searchHistory
+  historyField: {
+    flexDirection: "row",
+    borderBottomColor: Colors.gymme.placeholder,
+    borderBottomWidth: 2,
+    width: "100%",
+    flex: 1,
+    backgroundColor: Colors.gymme.background,
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 5,
+  },
+  leftItem: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  text: {
+    padding: 10,
+    fontSize: 16,
+    alignItems: "center",
+    fontFamily: "Poppins",
   },
 });

@@ -12,7 +12,7 @@ const CustomTextField = (props:any) => {
         placeholder={props.placeholderText}
         placeholderTextColor={Colors.gymme.placeholder}
         secureTextEntry={props.secure}
-        underlineColorAndroid="transparent">
+         underlineColorAndroid="transparent">
       </TextInput>
     </View>
   )  
@@ -23,7 +23,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     borderBottomColor: Colors.gymme.placeholder,
     borderBottomWidth: 2,
-    marginBottom: 10
+    marginBottom: 8
   },
   image: {
     margin: 10,

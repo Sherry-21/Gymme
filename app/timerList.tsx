@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -14,47 +14,50 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AntDesign, FontAwesome, MaterialIcons } from "@expo/vector-icons";
 import axios from "axios";
 import { deleteTimer, getTimer, postTimer } from "./API/timerApi";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { Colors } from "@/constants/Colors";
+import { timerHelper } from "@/helper/pathUtils";
+import Loading from "@/components/loading";
 
 const TimerList: React.FC = () => {
   const [showAddModal, setShowAddModal] = useState(false);
-  const [newTimer, setNewTimer] = useState({
-    name: "",
-    description: "",
-  });
 
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
   const [predefinedTimers, setPredefinedTimers]: any = useState([]);
+
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     fetchTimers();
   }, []);
 
+  useFocusEffect(
+    useCallback(() => {
+      fetchTimers();
+    }, [])
+  );
+
   const fetchTimers = async () => {
     try {
+      setIsLoading(true);
       const response = await getTimer();
-      console.log(response.data);
+      setIsLoading(false);
+      if(!response || response.success == false) {
+        throw new Error("data not found")
+      }
       setPredefinedTimers(response.data);
     } catch (error) {
-      // console.error('Error fetching timers:', error);
-      // const storedTimers = await AsyncStorage.getItem('savedTimers');
-      // if (storedTimers) {
-      //   setPredefinedTimers(JSON.parse(storedTimers));
-      // }
+      router.push("/errorPage");
     }
   };
 
-  const handleTimerSelect = () => {
-    // Navigate to timer page with timer details
-    //   navigation.navigate('Timer', {
-    //     timerId: timer.id,
-    //     timerName: timer.name,
-    //     timerDuration: timer.duration || 0
-    //   });
+  const handleTimerSelect = (timer_id: number) => {
+    router.push(timerHelper({ path: "Timer", id: timer_id.toString() }) as any);
   };
 
   const handleAddTimer = async () => {
-    if (!newTimer.name.trim() || !newTimer.description.trim()) {
+    if (!name.trim() || !description.trim()) {
       Alert.alert(
         "Invalid Input",
         "Please enter both timer name and description"
@@ -63,30 +66,40 @@ const TimerList: React.FC = () => {
     }
 
     try {
-      console.log(newTimer);
+      const newTimer = {
+        timer_name: name,
+        timer_description: description,
+      };
+      setShowAddModal(false);
+      setIsLoading(true);
       const response = await postTimer(newTimer);
-      const addedTimer = response.data;
-      console.log("WKWKWK WOI")
-      console.log(addedTimer);
+      setIsLoading(false);
 
+      const addedTimer = response.data;
+      console.log(addedTimer);
       const updatedTimers: any = [...predefinedTimers, addedTimer];
 
       setPredefinedTimers(updatedTimers);
 
-      setNewTimer({ name: "", description: "" });
-      setShowAddModal(false);
+      console.log(predefinedTimers);
+      setName("");
+      setDescription("");
     } catch (error) {
       console.error("Error adding timer:", error);
       Alert.alert("Error", "Failed to add timer. Please try again.");
     }
   };
 
-  const handleDeleteTimer = async () => {
+  const handleDeleteTimer = async (timer_id: number) => {
     try {
-      const response = await deleteTimer();
-      console.log("DELETE");
-      // const updatedTimers = predefinedTimers.filter(t => t.id !== timer.id);
-      // setPredefinedTimers(updatedTimers);
+      const response = await deleteTimer(timer_id);
+      if (response == null) {
+        return;
+      }
+      const updatedTimers = predefinedTimers.filter(
+        (t: any) => t.timer_id !== timer_id
+      );
+      setPredefinedTimers(updatedTimers);
     } catch (error) {
       console.error("Error deleting timer:", error);
       Alert.alert("Error", "Failed to delete timer");
@@ -128,7 +141,7 @@ const TimerList: React.FC = () => {
             <View key={index} style={styles.timerItemContainer}>
               <Pressable
                 style={styles.timerItem}
-                onPress={() => handleTimerSelect()}
+                onPress={() => handleTimerSelect(timer.timer_id)}
               >
                 <View style={styles.timerItemContent}>
                   <Text style={styles.timerName}>{timer.timer_name}</Text>
@@ -138,7 +151,7 @@ const TimerList: React.FC = () => {
                 </View>
                 <Pressable
                   style={styles.deleteButton}
-                  onPress={() => handleDeleteTimer()}
+                  onPress={() => handleDeleteTimer(timer.timer_id)}
                 >
                   <AntDesign name="delete" size={22} color="#ff0000" />
                 </Pressable>
@@ -153,8 +166,6 @@ const TimerList: React.FC = () => {
           style={styles.addButton}
           onPress={() => setShowAddModal(true)}
         >
-          {/* <AntDesign name="pluscircle" size={60} color="#F39C12" /> */}
-          {/* <FontAwesome name="plus-circle" size={60} color="#F39C12" /> */}
           <MaterialIcons name="add-circle" size={60} color="#F39C12" />
         </Pressable>
         <Text style={styles.addButtonText}>Add</Text>
@@ -167,18 +178,14 @@ const TimerList: React.FC = () => {
             <TextInput
               placeholder="Timer name"
               style={styles.modalInput}
-              value={newTimer.name}
-              onChangeText={(text) =>
-                setNewTimer((prev) => ({ ...prev, name: text }))
-              }
+              value={name}
+              onChangeText={setName}
             />
             <TextInput
               placeholder="Description"
               style={styles.modalInput}
-              value={newTimer.description}
-              onChangeText={(text) =>
-                setNewTimer((prev) => ({ ...prev, description: text }))
-              }
+              value={description}
+              onChangeText={setDescription}
             />
             <View style={styles.modalButtonContainer}>
               <Pressable
@@ -196,6 +203,8 @@ const TimerList: React.FC = () => {
           </View>
         </View>
       </Modal>
+
+      {isLoading ? <Loading /> : null}
     </View>
   );
 };
@@ -203,7 +212,7 @@ const TimerList: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F9FAFB",
+    backgroundColor: "#fff",
   },
   headerContainer: {
     justifyContent: "center",
@@ -239,8 +248,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   timerListContainer: {
-    paddingHorizontal: 20,
-    paddingBottom: 120
+    paddingHorizontal: 25,
+    paddingBottom: 120,
   },
   timerItemContainer: {
     flexDirection: "row",
@@ -279,6 +288,7 @@ const styles = StyleSheet.create({
     // backgroundColor: "#FF6347",
     padding: 10,
     borderRadius: 5,
+    justifyContent: "center",
   },
   emptyStateContainer: {
     flex: 1,
@@ -309,7 +319,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 10
+    marginBottom: 10,
   },
   addButtonText: {
     color: "#F39C12",

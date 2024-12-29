@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, TouchableOpacity } from "react-native"
+import { Pressable, StyleSheet, Text } from "react-native"
 import { Colors } from '@/constants/Colors';
 
 const buttonCustom = (props:any) => {
