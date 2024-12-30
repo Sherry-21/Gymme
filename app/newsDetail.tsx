@@ -192,9 +192,9 @@ const styles = StyleSheet.create({
   },
   headerText: {
     fontSize: 23,
-    fontWeight: "bold",
+    // fontWeight: "bold",
     marginRight: 30,
-    fontFamily: "Poppins",
+    fontFamily: "PoppinsBold",
   },
   textBookmark: {
     justifyContent: "space-between",

@@ -14,8 +14,7 @@ const buttonCustom = (props:any) => {
       borderBottomRightRadius: 15,
     },
     buttonText: {
-      fontWeight: 'bold',
-      fontFamily: 'Poppins'
+      fontFamily: 'PoppinsBold'
     }
   })
 

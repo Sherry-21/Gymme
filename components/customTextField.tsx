@@ -1,10 +1,11 @@
 import { Image, StyleSheet, TextInput, View } from "react-native";
 import { Colors } from '@/constants/Colors';
+import { MaterialIcons } from "@expo/vector-icons";
 
 const CustomTextField = (props:any) => {
   return(
     <View style={styles.textField}>
-      <Image style={styles.image} source={props.image}></Image>
+      <MaterialIcons style={styles.image} name={props.image} size={24} />
       <TextInput
         style={styles.textInput}
         value={props.value}
@@ -21,20 +22,19 @@ const CustomTextField = (props:any) => {
 const styles = StyleSheet.create({
   textField: {
     flexDirection: 'row',
+    alignItems: "center",
+    justifyContent: "center",
     borderBottomColor: Colors.gymme.placeholder,
     borderBottomWidth: 2,
     marginBottom: 8
   },
   image: {
-    margin: 10,
-    width: 24,
-    height: 24,
-    resizeMode: 'contain'
+    marginHorizontal: 10,
   },
   textInput: {
     flex: 1,
     padding: 10,
-    fontSize: 14,
+    fontSize: 12,
     alignItems: 'center',
     fontFamily: 'Poppins'
   }

@@ -7,6 +7,7 @@ import {
   Modal,
   StyleSheet,
   Alert,
+  SafeAreaView,
 } from "react-native";
 import RegisterDropDown from "@/components/customDropDown";
 import { AntDesign, MaterialIcons } from "@expo/vector-icons";
@@ -20,6 +21,7 @@ import Loading from "@/components/loading";
 import { Colors } from "@/constants/Colors";
 import { StatusBar } from "react-native";
 import { deleteItem } from "../utils/SecureStoreChain";
+import { ScrollView } from "react-native";
 
 export default function ProfilePage() {
   const [userId, setUserId] = useState<string>("");
@@ -49,7 +51,12 @@ export default function ProfilePage() {
       const response2 = await getLatest();
       const information = response.data;
       const data2 = response2.data;
-      if (!response || response.success == false || !response2 || response2.success == false) {
+      if (
+        !response ||
+        response.success == false ||
+        !response2 ||
+        response2.success == false
+      ) {
         throw new Error("Error when load profile");
       }
 
@@ -60,7 +67,7 @@ export default function ProfilePage() {
       );
       setGender(information.user_gender == "M" ? "Male" : "Female");
       setWeight(data2.user_weight ? data2.user_weight.toString() : "-");
-      setLastDate(data2.user_weight_time)
+      setLastDate(data2.user_weight_time);
       setIsLoading(false);
     } catch (error) {
       console.error("Error fetching profile:", error);
@@ -74,7 +81,7 @@ export default function ProfilePage() {
   };
 
   const formatDateToIndonesian = (dateTemp: Date): string => {
-    const date = new Date(dateTemp)
+    const date = new Date(dateTemp);
     const options: Intl.DateTimeFormatOptions = {
       timeZone: "Asia/Jakarta",
       day: "numeric",
@@ -180,203 +187,223 @@ export default function ProfilePage() {
   };
 
   return (
-    <View style={styles.container}>
-      <StatusBar backgroundColor="#ff6347" barStyle="light-content" />
-      <View style={styles.header}>
-        <View style={styles.headerContent}>
-          <View style={styles.welcomeContainer}>
-            <Text style={styles.welcomeText}>Welcome, </Text>
-            <Text style={styles.name}>{userId || "User"}</Text>
+    <SafeAreaView style={styles.container}>
+      <ScrollView>
+        <StatusBar backgroundColor="#ff6347" barStyle="light-content" />
+        <View style={styles.header}>
+          <View style={styles.headerContent}>
+            <View style={styles.welcomeContainer}>
+              <Text style={styles.welcomeText}>Welcome, </Text>
+              <Text style={styles.name}>{userId || "User"}</Text>
+            </View>
+            <View style={styles.userInfo}>
+              {gender == "Male" ? (
+                <MaterialIcons name="male" size={20} color="#fff" />
+              ) : (
+                <MaterialIcons name="female" size={20} color="#fff" />
+              )}
+              <Text style={styles.userInfoText}>({gender || "-"})</Text>
+            </View>
           </View>
-          <View style={styles.userInfo}>
-            {gender == "Male" ? (
-              <MaterialIcons name="male" size={20} color="#fff" />
-            ) : (
-              <MaterialIcons name="female" size={20} color="#fff" />
-            )}
-            <Text style={styles.userInfoText}>({gender || "-"})</Text>
+          <View style={styles.rightContainer}>
+            <View
+              style={{
+                flex: 1,
+                justifyContent: "flex-end",
+                alignItems: "flex-end",
+              }}
+            >
+              <View style={styles.iconSettings}>
+                <MaterialIcons name="settings" size={24} color={"#fff"} />
+                <Pressable onPress={press}>
+                  {isPressed ? (
+                    <MaterialIcons
+                      name="keyboard-arrow-up"
+                      size={24}
+                      color={"#fff"}
+                    />
+                  ) : (
+                    <MaterialIcons
+                      name="keyboard-arrow-down"
+                      size={24}
+                      color={"#fff"}
+                    />
+                  )}
+                </Pressable>
+              </View>
+              {isPressed ? (
+                <View style={styles.settingDropdown}>
+                  <View style={styles.settingBox}>
+                    <Pressable
+                      style={styles.settingOption}
+                      onPress={openProfile}
+                    >
+                      <MaterialIcons
+                        name="person"
+                        size={24}
+                        color={Colors.gymme.placeholder}
+                        style={{ marginRight: 15 }}
+                      />
+                      <Text style={{ fontFamily: "Poppins" }}>profile</Text>
+                    </Pressable>
+                    <View
+                      style={{ justifyContent: "center", alignItems: "center" }}
+                    >
+                      <View style={styles.line} />
+                    </View>
+                    <Pressable
+                      style={styles.settingOption}
+                      onPress={openToaster}
+                    >
+                      <MaterialIcons
+                        name="logout"
+                        size={24}
+                        color={Colors.gymme.placeholder}
+                        style={{ marginRight: 15 }}
+                      />
+                      <Text style={{ fontFamily: "Poppins" }}>logout</Text>
+                    </Pressable>
+                  </View>
+                </View>
+              ) : null}
+            </View>
           </View>
         </View>
-        <View style={styles.rightContainer}>
-          <View
-            style={{
-              flex: 1,
-              justifyContent: "flex-end",
-              alignItems: "flex-end",
-            }}
-          >
-            <View style={styles.iconSettings}>
-              <MaterialIcons name="settings" size={24} color={"#fff"} />
-              <Pressable onPress={press}>
-                {isPressed ? (
-                  <MaterialIcons
-                    name="keyboard-arrow-up"
-                    size={24}
-                    color={"#fff"}
-                  />
-                ) : (
-                  <MaterialIcons
-                    name="keyboard-arrow-down"
-                    size={24}
-                    color={"#fff"}
-                  />
-                )}
+
+        <View style={styles.containerContent}>
+          <View style={styles.weightCard}>
+            <View>
+              <Text style={styles.weightTitle}>Current Weight</Text>
+              <Text style={styles.weightInfo}>
+                {weight} kg - ({" "}
+                {formatDateToIndonesian(
+                  lastDate == null ? lastDate : new Date()
+                )}{" "}
+                )
+              </Text>
+              <Pressable onPress={() => moveToWeightHistory()}>
+                <Text style={styles.weightHistory}>View weight history</Text>
               </Pressable>
             </View>
-            {isPressed ? (
-              <View style={styles.settingDropdown}>
-                <View style={styles.settingBox}>
-                  <Pressable style={styles.settingOption} onPress={openProfile}>
-                    <MaterialIcons
-                      name="person"
-                      size={24}
-                      color={Colors.gymme.placeholder}
-                      style={{ marginRight: 15 }}
-                    />
-                    <Text style={{ fontFamily: "Poppins" }}>profile</Text>
-                  </Pressable>
-                  <View
-                    style={{ justifyContent: "center", alignItems: "center" }}
+            <Pressable
+              style={styles.updateButton}
+              onPress={() => setShowUpdateModal(true)}
+            >
+              <Text style={styles.updateButtonText}>Update</Text>
+            </Pressable>
+          </View>
+
+          <View style={styles.featureCard}>
+            <Text style={styles.featureText}>Bookmarked</Text>
+            <MaterialIcons name="bookmark-outline" size={40} color="#000" />
+            <Pressable style={styles.featureButton} onPress={goToBookmarked}>
+              <Text style={styles.featureButtonText}>View</Text>
+            </Pressable>
+          </View>
+
+          <Text style={styles.sectionTitle}>Other Feature</Text>
+          <View style={styles.otherFeatures}>
+            <View style={styles.featureCard}>
+              <Text style={styles.featureText}>Workout calendar</Text>
+              <AntDesign name="calendar" size={40} color="#000" />
+              <Pressable style={styles.featureButton} onPress={goToCalendar}>
+                <Text style={styles.featureButtonText}>View</Text>
+              </Pressable>
+            </View>
+            <View style={styles.featureCard}>
+              <Text style={styles.featureText}>Workout timer</Text>
+              <AntDesign name="clockcircleo" size={40} color="#000" />
+              <Pressable style={styles.featureButton} onPress={goToTimerList}>
+                <Text style={styles.featureButtonText}>View</Text>
+              </Pressable>
+            </View>
+          </View>
+
+          <Modal
+            visible={showUpdateModal}
+            animationType="slide"
+            transparent={true}
+            statusBarTranslucent={true}
+          >
+            <View style={styles.modalOverlay}>
+              <View
+                style={[
+                  styles.modalContent,
+                  { position: "absolute", bottom: 0 },
+                ]}
+              >
+                <Pressable
+                  style={styles.modalCloseButton}
+                  onPress={() => setShowUpdateModal(false)}
+                >
+                  <AntDesign name="close" size={24} color="#333" />
+                </Pressable>
+
+                <Text style={styles.modalTitle}>Update Your Weight</Text>
+
+                <View style={styles.inputContainer}>
+                  <TextInput
+                    style={styles.weightInput}
+                    value={updatedWeight}
+                    onChangeText={handleWeightInput}
+                    keyboardType="decimal-pad"
+                    placeholder="Enter new weight"
+                    placeholderTextColor="#999"
+                    maxLength={6}
+                  />
+                  <Text style={styles.unitText}>kg</Text>
+                </View>
+
+                <View style={styles.buttonContainer}>
+                  <Pressable
+                    style={styles.cancelButton}
+                    onPress={() => setShowUpdateModal(false)}
                   >
-                    <View style={styles.line} />
-                  </View>
-                  <Pressable style={styles.settingOption} onPress={openToaster}>
-                    <MaterialIcons
-                      name="logout"
-                      size={24}
-                      color={Colors.gymme.placeholder}
-                      style={{ marginRight: 15 }}
-                    />
-                    <Text style={{ fontFamily: "Poppins" }}>logout</Text>
+                    <Text style={styles.cancelButtonText}>Cancel</Text>
+                  </Pressable>
+                  <Pressable
+                    style={[styles.updateButtonModal]}
+                    onPress={handleUpdateWeight}
+                  >
+                    <Text style={styles.updateButtonTextModal}>
+                      Update Weight
+                    </Text>
                   </Pressable>
                 </View>
               </View>
-            ) : null}
-          </View>
-        </View>
-      </View>
-
-      <View style={styles.containerContent}>
-        <View style={styles.weightCard}>
-          <View>
-            <Text style={styles.weightTitle}>Current Weight</Text>
-            <Text style={styles.weightInfo}>
-              {weight} kg - ( {formatDateToIndonesian(lastDate)} )
-            </Text>
-            <Pressable onPress={() => moveToWeightHistory()}>
-              <Text style={styles.weightHistory}>View weight history</Text>
-            </Pressable>
-          </View>
-          <Pressable
-            style={styles.updateButton}
-            onPress={() => setShowUpdateModal(true)}
-          >
-            <Text style={styles.updateButtonText}>Update</Text>
-          </Pressable>
+            </View>
+          </Modal>
         </View>
 
-        <View style={styles.featureCard}>
-          <Text style={styles.featureText}>Bookmarked</Text>
-          <MaterialIcons name="bookmark-outline" size={40} color="#000" />
-          <Pressable style={styles.featureButton} onPress={goToBookmarked}>
-            <Text style={styles.featureButtonText}>View</Text>
-          </Pressable>
-        </View>
-
-        <Text style={styles.sectionTitle}>Other Feature</Text>
-        <View style={styles.otherFeatures}>
-          <View style={styles.featureCard}>
-            <Text style={styles.featureText}>Workout calendar</Text>
-            <AntDesign name="calendar" size={40} color="#000" />
-            <Pressable style={styles.featureButton} onPress={goToCalendar}>
-              <Text style={styles.featureButtonText}>View</Text>
-            </Pressable>
-          </View>
-          <View style={styles.featureCard}>
-            <Text style={styles.featureText}>Workout timer</Text>
-            <AntDesign name="clockcircleo" size={40} color="#000" />
-            <Pressable style={styles.featureButton} onPress={goToTimerList}>
-              <Text style={styles.featureButtonText}>View</Text>
-            </Pressable>
-          </View>
-        </View>
-
-        <Modal
-          visible={showUpdateModal}
-          animationType="slide"
-          transparent={true}
-          statusBarTranslucent={true}
-        >
-          <View style={styles.modalOverlay}>
-            <View
-              style={[styles.modalContent, { position: "absolute", bottom: 0 }]}
-            >
-              <Pressable
-                style={styles.modalCloseButton}
-                onPress={() => setShowUpdateModal(false)}
-              >
-                <AntDesign name="close" size={24} color="#333" />
-              </Pressable>
-
-              <Text style={styles.modalTitle}>Update Your Weight</Text>
-
-              <View style={styles.inputContainer}>
-                <TextInput
-                  style={styles.weightInput}
-                  value={updatedWeight}
-                  onChangeText={handleWeightInput}
-                  keyboardType="decimal-pad"
-                  placeholder="Enter new weight"
-                  placeholderTextColor="#999"
-                  maxLength={6}
-                />
-                <Text style={styles.unitText}>kg</Text>
-              </View>
-
-              <View style={styles.buttonContainer}>
+        {questionToaster && (
+          <View style={styles.errorToaster}>
+            <View style={styles.errorBox}>
+              <MaterialIcons
+                style={styles.icon}
+                name="help"
+                size={50}
+                color="#F39C12"
+              />
+              <Text style={styles.titleNotFound}>ARE YOU SURE?</Text>
+              <Text style={styles.subheaderText}>
+                Logout from your account?
+              </Text>
+              <View style={styles.buttonRow}>
                 <Pressable
-                  style={styles.cancelButton}
-                  onPress={() => setShowUpdateModal(false)}
+                  onPress={closeToaster}
+                  style={styles.toasterContentNo}
                 >
-                  <Text style={styles.cancelButtonText}>Cancel</Text>
+                  <Text style={styles.errorTextNo}>no</Text>
                 </Pressable>
-                <Pressable
-                  style={[styles.updateButtonModal]}
-                  onPress={handleUpdateWeight}
-                >
-                  <Text style={styles.updateButtonTextModal}>
-                    Update Weight
-                  </Text>
+                <Pressable onPress={logout} style={styles.toasterContentYes}>
+                  <Text style={styles.errorText}>yes</Text>
                 </Pressable>
               </View>
             </View>
           </View>
-        </Modal>
-      </View>
-
-      {questionToaster && (
-        <View style={styles.errorToaster}>
-          <View style={styles.errorBox}>
-            <MaterialIcons
-              style={styles.icon}
-              name="help"
-              size={50}
-              color="#F39C12"
-            />
-            <Text style={styles.titleNotFound}>ARE YOU SURE?</Text>
-            <Text style={styles.subheaderText}>Logout from your account?</Text>
-            <View style={styles.buttonRow}>
-              <Pressable onPress={closeToaster} style={styles.toasterContentNo}>
-                <Text style={styles.errorTextNo}>no</Text>
-              </Pressable>
-              <Pressable onPress={logout} style={styles.toasterContentYes}>
-                <Text style={styles.errorText}>yes</Text>
-              </Pressable>
-            </View>
-          </View>
-        </View>
-      )}
-    </View>
+        )}
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
@@ -466,7 +493,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fff",
     paddingHorizontal: 20,
-    zIndex: -1,
   },
   weightCard: {
     backgroundColor: "#fff",

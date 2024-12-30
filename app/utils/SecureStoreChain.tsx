@@ -8,6 +8,7 @@ export async function setItems(key:string, value:string) {
     if (isWeb) {
         await AsyncStorage.setItem(key, value);
     } else {
+        console.log("HIT HERE")
         await SecureStore.setItemAsync(key, value);
     }
 }

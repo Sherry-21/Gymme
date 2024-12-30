@@ -427,7 +427,7 @@ const CalendarScreen = () => {
   }
   const getMarkedDates = () => {
     const marked: { [key: string]: any } = {};
-
+    console.log(selectedDate)
     Object.keys(events).forEach((date) => {
       marked[date] = {
         marked: true,
@@ -658,7 +658,7 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 16,
     textAlign: "center",
-    marginTop: 20,
+    marginTop:80,
   },
   eventItem: {
     flexDirection: "column",

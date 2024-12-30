@@ -1,6 +1,5 @@
 import { Link, router, Stack, useLocalSearchParams } from "expo-router";
 import {
-  Image,
   SafeAreaView,
   StyleSheet,
   Text,
@@ -8,6 +7,7 @@ import {
 } from "react-native";
 import ButtonCustom from "@/components/button";
 import { Colors } from "@/constants/Colors";
+import NotFound from "@/assets/images/error/notFound";
 
 const error = require("@/assets/images/error/notFound.svg");
 
@@ -19,10 +19,8 @@ export default function notFound() {
   return (
     <SafeAreaView style={styles.baseColor}>
       <View style={styles.mainLayout}>
-        <Image
-          style={styles.loginLogo}
-          source={error}
-        />
+        <NotFound width={300} height={300}/>
+
         <Text style={styles.title}>Data not found</Text>
         <Text style={styles.subText}>No such data found in the database</Text>
         <ButtonCustom
@@ -46,7 +44,8 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     fontFamily: 'Poppins',
-    marginBottom: 2
+    marginBottom: 2, 
+    marginTop: 5
   },
   subText: {
     fontSize: 16,

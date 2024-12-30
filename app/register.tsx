@@ -17,13 +17,6 @@ import { MaterialIcons } from "@expo/vector-icons";
 import Loading from "@/components/loading";
 import { setItems } from "./utils/SecureStoreChain";
 
-const user = require("@/assets/images/register/human.png");
-const phone = require("@/assets/images/register/phone.png");
-const lock = require("@/assets/images/register/lock.png");
-const emailImage = require("@/assets/images/register/email.png");
-const genderImage = require("@/assets/images/register/gender.png");
-const heightImage = require("@/assets/images/register/height.png");
-
 const genderItems = [
   { label: "Male", value: "M" },
   { label: "Female", value: "F" },
@@ -153,27 +146,27 @@ export default function register() {
           </Text>
           <RegisterTextField
             placeholderText={"Username"}
-            image={user}
+            image={"person"}
             value={username}
             setValue={setUsername}
           />
           <RegisterTextField
             placeholderText={"Email"}
-            image={emailImage}
+            image={"email"}
             value={email}
             setValue={setEmail}
           />
           {emailError ? <Text style={styles.error}>{emailError}</Text> : null}
           <RegisterTextField
-            placeholderText={"Phone Number"}
-            image={phone}
+            placeholderText={"Phone Numberzzz"}
+            image={"phone"}
             value={phoneNumber}
             setValue={setPhoneNumber}
           />
           {pnError ? <Text style={styles.error}>{pnError}</Text> : null}
           <RegisterDropDown
             placeholderText={"Gender"}
-            image={genderImage}
+            image={"male"}
             value={gender}
             setValue={setGender}
             open={false}
@@ -181,14 +174,14 @@ export default function register() {
           />
           <RegisterTextField
             placeholderText={"Height (cm)"}
-            image={heightImage}
+            image={"height"}
             value={height}
             setValue={setHeight}
           />
           {heightError ? <Text style={styles.error}>{heightError}</Text> : null}
           <RegisterTextField
             placeholderText={"Password"}
-            image={lock}
+            image={"lock"}
             value={password}
             setValue={setPassword}
             secure={true}
@@ -196,7 +189,7 @@ export default function register() {
           {passError1 ? <Text style={styles.error}>{passError1}</Text> : null}
           <RegisterTextField
             placeholderText={"Confirm Password"}
-            image={lock}
+            image={"lock"}
             value={confirmPassword}
             setValue={setConfirmPassword}
             secure={true}
@@ -212,7 +205,7 @@ export default function register() {
         />
 
         <View style={styles.bottomText}>
-          <Text>Already have an account? </Text>
+          <Text style={{fontSize: 12, fontFamily: "Poppins"}}>Already have an account? </Text>
           <Link href="/">
             <Text style={styles.link}>Login here</Text>
           </Link>
@@ -267,15 +260,14 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   headerText: {
-    fontSize: 23,
-    fontWeight: "bold",
-    fontFamily: "Poppins",
+    fontSize: 22,
+    fontFamily: "PoppinsBold",
     marginBottom: 10,
   },
   subText: {
-    fontSize: 16,
+    fontSize: 15,
     fontFamily: "Poppins",
-    marginBottom: 25,
+    marginBottom: 15,
   },
   bottomText: {
     flexDirection: "row",
@@ -285,6 +277,8 @@ const styles = StyleSheet.create({
     textDecorationLine: "underline",
     textDecorationColor: Colors.gymme.blue,
     color: Colors.gymme.blue,
+    fontFamily: "Poppins",
+    fontSize: 12
   },
   error: {
     fontSize: 12,
@@ -301,6 +295,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0, 0, 0, 0.5)",
     alignItems: "center",
     justifyContent: "center",
+    zIndex: 10
   },
   toasterContent: {
     alignItems: "center",

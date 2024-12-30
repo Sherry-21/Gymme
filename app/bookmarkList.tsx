@@ -98,27 +98,31 @@ export default function bookmarkList() {
       <ScrollView>
         {equipment ? (
           <View style={{ marginHorizontal: 25, marginBottom: 40 }}>
-            {equipmentList.map((item: any, index: number) => (
-              <BookmarkButton
-                key={index}
-                id={item.equipment_course_id}
-                image={dummy}
-                name={item.equipment_name}
-                subText={item.equipment_course_name}
-              />
-            ))}
+            {equipmentList && equipmentList.length > 0
+              ? equipmentList.map((item: any, index: number) => (
+                  <BookmarkButton
+                    key={index}
+                    id={item.equipment_course_id}
+                    image={dummy}
+                    name={item.equipment_name}
+                    subText={item.equipment_course_name}
+                  />
+                ))
+              : null}
           </View>
         ) : (
           <View style={{ marginHorizontal: 25, marginBottom: 40 }}>
-            {news.map((item: any, index: number) => (
-              <NewsButton
-                key={index}
-                id={item.information_id}
-                image={dummy}
-                title={item.information_header}
-                date={parseDate(item.information_date_created)}
-              />
-            ))}
+            {news && news.length > 0
+              ? news.map((item: any, index: number) => (
+                  <NewsButton
+                    key={index}
+                    id={item.information_id}
+                    image={item.information_header_path_content}
+                    title={item.information_header}
+                    date={parseDate(item.information_date_created)}
+                  />
+                ))
+              : null}
           </View>
         )}
       </ScrollView>

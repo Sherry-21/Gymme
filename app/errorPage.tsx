@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import ButtonCustom from "@/components/button";
 import { Colors } from "@/constants/Colors";
+import ErrorComponent from "@/assets/images/error/error";
 
 const error = require("@/assets/images/error/error.svg");
 
@@ -19,10 +20,7 @@ export default function errorPage() {
   return (
     <SafeAreaView style={styles.baseColor}>
       <View style={styles.mainLayout}>
-        <Image
-          style={styles.loginLogo}
-          source={error}
-        />
+        <ErrorComponent width={250} height={250}/>
         <Text style={styles.title}>INTERNAL SERVER ERROR</Text>
         <Text style={styles.subText}>Please try again later</Text>
         <ButtonCustom

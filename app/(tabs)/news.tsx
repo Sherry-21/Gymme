@@ -34,6 +34,8 @@ export default function HomeScreen() {
 
   const limit: string = "15";
 
+  const mainRef = useRef(null);
+  
   const scrollViewRef = useRef<IOScrollViewController>(null);
 
   useFocusEffect(

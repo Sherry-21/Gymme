@@ -17,13 +17,17 @@ import { Link } from "expo-router";
 import { Colors } from "@/constants/Colors";
 import create_server from "@/helper/createServer";
 import { router } from "expo-router";
-import { getSecureItem, saveSecureItem } from "@/app/utils/SessionKeyChain";
 import { getItems, setItems } from "@/app/utils/SecureStoreChain";
 import { userLogin } from "./API/authentication";
 import { MaterialIcons } from "@expo/vector-icons";
 import Loading from "@/components/loading";
+import LoginLogo from "@/assets/images/login/loginLogo";
 
 SplashScreen.preventAutoHideAsync();
+SplashScreen.setOptions({
+  duration: 1000,
+  fade: true,
+});
 
 const lock = require("@/assets/images/login/lock.png");
 const emailImage = require("@/assets/images/login/email.png");
@@ -93,9 +97,9 @@ export default function App() {
         } else {
           await setItems("itemKey", response.token);
         }
-
-        router.push('/test')
+        router.push('/news')
       } catch (error) {
+        StatusBar.setBackgroundColor("rgba(0, 0, 0, 0.5)")
         setErrorToaster(true);
       }
     };
@@ -129,23 +133,20 @@ export default function App() {
         hidden={false}
       />
       <View style={styles.mainLayout}>
-        <Image
-          style={styles.loginLogo}
-          source={require("@/assets/images/login/login logo.svg")}
-        />
+        <LoginLogo width={250} height={250}/>
 
         <View style={styles.mainLogin}>
           <Text style={styles.headerText}> Login Screen </Text>
           <LoginTextField
             placeholderText={"Email"}
-            image={emailImage}
+            image={"email"}
             value={email}
             setValue={setEmail}
           />
           {emailError ? <Text style={styles.error}>{emailError}</Text> : null}
           <LoginTextField
             placeholderText={"Password"}
-            image={lock}
+            image={"lock"}
             value={password}
             setValue={setPassword}
             secure={true}
@@ -161,7 +162,7 @@ export default function App() {
         />
 
         <View style={styles.bottomText}>
-          <Text>Don’t have an account? </Text>
+          <Text style={{fontFamily: "Poppins", fontSize: 12}}>Don’t have an account? </Text>
           <Link href="/register">
             <Text style={styles.link}>Register here</Text>
           </Link>
@@ -220,9 +221,8 @@ const styles = StyleSheet.create({
   },
   headerText: {
     fontSize: 25,
-    fontWeight: "bold",
-    marginBottom: 20,
-    fontFamily: "Poppins",
+    marginBottom: 15,
+    fontFamily: "PoppinsBold",
   },
   bottomText: {
     flexDirection: "row",
@@ -232,6 +232,8 @@ const styles = StyleSheet.create({
     textDecorationLine: "underline",
     textDecorationColor: Colors.gymme.blue,
     color: Colors.gymme.blue,
+    fontFamily: "Poppins",
+    fontSize: 12
   },
 
   errorToaster: {

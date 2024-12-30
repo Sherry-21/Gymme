@@ -46,13 +46,13 @@ const styles = StyleSheet.create({
   box: {
     flexDirection: "row",
     width: "100%",
-    padding: 20,
+    padding: 15,
     backgroundColor: Colors.gymme.background,
     alignItems: "center",
     borderRadius: 15,
     marginBottom: 15,
     shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    shadowRadius: 4,
     shadowOffset: {
       width: 0,
       height: 5,
@@ -74,9 +74,8 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 15,
-    fontWeight: "600",
-    fontFamily: "Poppins",
-    flex: 1,
+    // fontWeight: "bold",
+    fontFamily: "PoppinsBold",
     marginBottom: 3,
   },
   date: {
@@ -86,6 +85,7 @@ const styles = StyleSheet.create({
   },
   rightContainer: {
     flex: 1,
+    justifyContent: 'center',
   },
 });
 

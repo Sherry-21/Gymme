@@ -5,6 +5,7 @@ import { router, useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
   Pressable,
+  SafeAreaView,
   StatusBar,
   StyleSheet,
   Text,
@@ -111,7 +112,7 @@ const ViewProfile = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#F39C12" />
       <View style={styles.headerContainer}>
         <Pressable style={styles.backgroundArrow} onPress={() => backButton()}>
@@ -233,7 +234,7 @@ const ViewProfile = () => {
           </View>
         </View>
       )}
-    </View>
+    </SafeAreaView>
   );
 };
 
