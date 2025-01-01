@@ -388,7 +388,10 @@ const WorkoutTimer: React.FC = () => {
       </View>
 
       <Text style={styles.queueTitle}>Next queue</Text>
-      <ScrollView contentContainerStyle={styles.queueList}>
+      <ScrollView
+        contentContainerStyle={styles.queueList}
+        showsVerticalScrollIndicator={false}
+      >
         {queue.slice(currentExercise ? 1 : 0).map((exercise, index) => (
           <View key={index} style={styles.queueItem}>
             <Text style={styles.queueItemText}>{exercise.name}</Text>

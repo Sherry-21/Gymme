@@ -60,18 +60,16 @@ export default function equipmentDetail() {
   };
 
   const validateLink = async (data: any) => {
-    console.log(data)
+    console.log(data);
     const checkImageUrl = data.equipment_detail?.forEach(
       async (detail: any) => {
-        console.log("WKWK APA SIH")
-        console.log(detail.TutorialPath)
+        console.log("WKWK APA SIH");
+        console.log(detail.TutorialPath);
         if (detail.TutorialPath.length == 0) {
           detail.TutorialPath = null;
         } else {
-          const responseImageUrl = await checkImageUri(
-            detail.TutorialPath
-          );
-          console.log(responseImageUrl)
+          const responseImageUrl = await checkImageUri(detail.TutorialPath);
+          console.log(responseImageUrl);
           if (responseImageUrl == false) {
             detail.TutorialPath = null;
           }
@@ -86,7 +84,7 @@ export default function equipmentDetail() {
       const response = await getCourseById(parseInt(muscleId.toString()));
       setIsLoading(false);
       console.log(response);
-      if (!response || response.success == false) {
+      if (response == null || response.success == false) {
         throw new Error("error getting data");
       }
       const data = response.data;
@@ -151,7 +149,12 @@ export default function equipmentDetail() {
             {equipmentDetail?.equipment_master_name}
           </Text>
           <Text style={styles.titleSubDetail}>
-            {equipmentDetail?.equipment_mapping_data_entity_name}
+            {equipmentDetail?.equipment_mapping_data_entity_name.length > 20
+              ? `${equipmentDetail.equipment_mapping_data_entity_name.slice(
+                  0,
+                  20
+                )}...`
+              : equipmentDetail?.equipment_mapping_data_entity_name}{" "}
           </Text>
         </View>
         <Pressable onPress={bookmarkNews}>

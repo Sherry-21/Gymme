@@ -157,7 +157,7 @@ const viewWeightHistory = () => {
           formatDate(lastDate)
         );
         setIsLoading(false);
-        if(!response || response.success == false) {
+        if(response == null || response.success == false) {
           throw new Error("Error")
         }
 

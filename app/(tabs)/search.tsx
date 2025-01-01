@@ -22,8 +22,9 @@ import {
 } from "../API/searchApi";
 import { FlatList } from "react-native-gesture-handler";
 import Loading from "@/components/loading";
+import AiImage from "@/assets/images/search/aiImage";
 
-const aiImage = require("@/assets/images/search/aiImage.png");
+const aiImage = require("@/assets/images/search/aiImage.svg");
 const dummy = require("@/assets/images/home/dummy img.png");
 
 type SearchItem = {
@@ -56,7 +57,7 @@ export default function SearchScreen() {
       setIsLoading(true);
       const response = await getSearchHistory();
       setIsLoading(false);
-      if (response.success == false) {
+      if (response == null || response.success == false) {
         throw new Error("Error get history");
       }
       const data = response.data;
@@ -73,7 +74,7 @@ export default function SearchScreen() {
       const response = await getPageBySearch(value);
       setIsLoading(false);
       console.log(response);
-      if (response.success == false) {
+      if (response == null || response.success == false) {
         throw new Error("Error get history");
       }
       const data = response.data;
@@ -136,7 +137,7 @@ export default function SearchScreen() {
             ></TextInput>
           </View>
           <Pressable onPress={aiLens}>
-            <Image style={styles.aiImage} source={aiImage}></Image>
+            <AiImage width={44} height={44}/>
           </Pressable>
         </View>
 
@@ -148,7 +149,7 @@ export default function SearchScreen() {
                 style={styles.box}
                 onPress={() => equipmentPressed(item.EquipmentId)}
               >
-                <Image style={styles.image} source={dummy}></Image>
+                <Image style={styles.image} source={item.equipment_photo_path}></Image>
                 <Text style={styles.textSearch}>{item.EquipmentName}</Text>
               </Pressable>
             ))
@@ -199,7 +200,7 @@ const styles = StyleSheet.create({
   image: {
     width: 70,
     height: 70,
-    marginRight: 15,
+    marginRight: 10,
   },
   textSearch: {
     flex: 1,

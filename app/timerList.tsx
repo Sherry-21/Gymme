@@ -43,7 +43,7 @@ const TimerList: React.FC = () => {
       setIsLoading(true);
       const response = await getTimer();
       setIsLoading(false);
-      if(!response || response.success == false) {
+      if(response == null || response.success == false) {
         throw new Error("data not found")
       }
       setPredefinedTimers(response.data);

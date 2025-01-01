@@ -43,7 +43,7 @@ const ViewProfile = () => {
       const response = await getProfileById();
       setIsLoading(false);
 
-      if (!response) {
+      if (response == null || response.success == false) {
         throw new Error("Error get profile");
       }
 
@@ -97,7 +97,7 @@ const ViewProfile = () => {
       setIsLoading(true);
       const response = await postProfileById(getPayload());
       setIsLoading(false);
-      if (!response || response == null) {
+      if (response == null || response == null) {
         throw new Error("Error get profile");
       }
       setHeightTemp(height);

@@ -36,7 +36,7 @@ export default function searchResult() {
     try {
       setIsLoading(true);
       const response = await getAllCourse(parseInt(equipmentId.toString(), 10));
-      if (response.success == "false") {
+      if (response == null || response.success == "false") {
         throw new Error("ERROR");
       }
       const data = response.data;
@@ -47,6 +47,7 @@ export default function searchResult() {
       setEquipment(data);
     } catch (error) {
       console.error("Error fetching data:", error);
+      router.push("/errorPage")
     } finally {
       setIsLoading(false);
     }
@@ -66,7 +67,10 @@ export default function searchResult() {
       {isLoading ? (
         <Loading />
       ) : (
-        <ScrollView style={{ marginHorizontal: 25, marginVertical: 40 }}>
+        <ScrollView
+          style={{ marginHorizontal: 25, marginVertical: 40 }}
+          showsVerticalScrollIndicator={false}
+        >
           <Pressable style={styles.backgroundArrow} onPress={backButton}>
             <MaterialIcons name={"arrow-back-ios-new"} size={24} />
           </Pressable>
@@ -75,7 +79,7 @@ export default function searchResult() {
             <Image
               style={styles.eqImage}
               source={{
-                uri: equipment ? equipment.equipment_photo_path : "photo path",
+                uri: equipment ? equipment.equipment_photo_path : null,
               }}
             />
             <Text style={styles.headerText}>
@@ -148,19 +152,22 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   headerText: {
-    fontSize:24,
+    fontSize: 26,
     fontFamily: "PoppinsBold",
     marginTop: 20,
     marginBottom: 3,
   },
   subText: {
-    fontSize: 16,
+    fontSize: 18,
     marginBottom: 15,
     fontFamily: "Poppins",
     textAlign: "center",
   },
   buttonMuscle: {
     flex: 1,
+    height: 80,
+    justifyContent: "center",
+    alignItems: "center",
     width: "100%",
     paddingVertical: 8,
     backgroundColor: "#fff",
@@ -169,7 +176,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 3,
-    elevation: 5,
+    elevation: 2,
+    marginBottom: 15,
   },
   mainLoading: {
     flex: 1,

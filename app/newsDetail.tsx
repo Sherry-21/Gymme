@@ -6,6 +6,7 @@ import {
   Pressable,
   SafeAreaView,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   View,
@@ -127,13 +128,14 @@ export default function NewsDetail() {
 
   return (
     <SafeAreaView style={styles.baseColor}>
+      <StatusBar barStyle="light-content" backgroundColor="#000" />
       <ScrollView>
         <Image
           style={styles.aboveImage}
-          source={require("@/assets/images/newsDetail/test-image.png")}
+          source={{uri: Information?.information_header_image_path}}
         ></Image>
         <Pressable style={styles.backgroundArrow} onPress={() => backButton()}>
-          <MaterialIcons name="arrow-back-ios-new" size={20} color="#000" />
+          <MaterialIcons name="arrow-back-ios-new" size={20} color="#fff" />
         </Pressable>
 
         <View style={styles.mainLayout}>
@@ -223,11 +225,11 @@ const styles = StyleSheet.create({
   },
   backgroundArrow: {
     position: "absolute",
-    backgroundColor: "#fff",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
     paddingVertical: 10,
     paddingHorizontal: 10.5,
     borderRadius: 40,
-    marginVertical: 60,
+    marginVertical: 40,
     marginHorizontal: 25,
   },
   headerText: {

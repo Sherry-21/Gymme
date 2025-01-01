@@ -55,9 +55,9 @@ export default function bookmarkList() {
       const response2 = await getEqBookmarkList();
       setIsLoading(false);
       if (
-        !response ||
+        response == null ||
         response.success == false ||
-        !response2 ||
+        response2 == null ||
         response2.success == false
       ) {
         throw new Error("Error fetching data");

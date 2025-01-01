@@ -131,7 +131,7 @@ export default function App() {
       />
       <View style={styles.mainLayout}>
         <LoginLogo width={250} height={250}/>
-
+        
         <View style={styles.mainLogin}>
           <Text style={styles.headerText}> Login Screen </Text>
           <LoginTextField

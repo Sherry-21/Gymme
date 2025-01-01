@@ -49,17 +49,19 @@ export default function ProfilePage() {
     try {
       const response = await getProfileById();
       const response2 = await getLatest();
-      const information = response.data;
-      const data2 = response2.data;
+
       if (
-        !response ||
+        response == null ||
         response.success == false ||
-        !response2 ||
+        response2 == null ||
         response2.success == false
       ) {
         throw new Error("Error when load profile");
       }
 
+      const information = response.data;
+      const data2 = response2.data;
+      
       setUserId(
         information.user_name.length > 8
           ? `${information.user_name.slice(0, 8)}...`

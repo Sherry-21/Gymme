@@ -60,7 +60,7 @@ export default function HomeScreen() {
         finalValue
       );
       console.log(responseSearch);
-      if (!responseSearch || responseSearch.success == false) {
+      if (responseSearch == null || responseSearch.success == false) {
         throw new Error("Data not found");
       } else {
         const dataRow = responseSearch.data.rows;
@@ -83,7 +83,7 @@ export default function HomeScreen() {
         limit,
         finalValue
       );
-      if (!responseObserver || responseObserver.success == false) {
+      if (responseObserver == null || responseObserver.success == false) {
         throw new Error("Data not found");
       } else {
         const dataRow = await responseObserver.data.rows;
@@ -108,7 +108,7 @@ export default function HomeScreen() {
           limit,
           value
         );
-        if (!responseSearch || responseSearch.success == false) {
+        if (responseSearch == null || responseSearch.success == false) {
           throw new Error("data not found");
         }
         const dataRow = responseSearch.data.rows;

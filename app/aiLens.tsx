@@ -1,22 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
-import {
-  Text,
-  View,
-  StyleSheet,
-  Image,
-  Pressable,
-} from "react-native";
+import { Text, View, StyleSheet, Image, Pressable } from "react-native";
 import { Camera, CameraView } from "expo-camera";
 import { Colors } from "@/constants/Colors";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 import { searchResultHelper } from "@/helper/pathUtils";
 import { aiSearch } from "./API/searchApi";
-
-const gallery = require("@/assets/images/search/gallery.png");
-const next = require("@/assets/images/search/next.png");
-const reset = require("@/assets/images/search/reset.png");
-const flip = require("@/assets/images/search/flip.png");
+import { MaterialIcons } from "@expo/vector-icons";
+import * as FileSystem from "expo-file-system";
+// import base64 from 'react-native-base64';
 
 export default function AiLens() {
   const [hasPermission, setHasPermission]: any = useState(null);
@@ -28,7 +20,7 @@ export default function AiLens() {
 
   useEffect(() => {
     (async () => {
-      console.log("WKWK")
+      console.log("WKWK");
       const { status } = await Camera.requestCameraPermissionsAsync();
       setHasPermission(status === "granted");
     })();
@@ -54,10 +46,10 @@ export default function AiLens() {
     });
 
     if (!result.canceled) {
-      console.log(result)
+      console.log(result);
       await setCapturedImage(result.assets[0].uri);
     }
-    console.log(capturedImage)
+    console.log(capturedImage);
   };
 
   //capture image
@@ -66,7 +58,8 @@ export default function AiLens() {
       const options: any = { quality: 1, base64: true, skipProcessing: true };
       const photo: any = await cameraRef.current.takePictureAsync(options);
       await setCapturedImage(photo.uri);
-      console.log(capturedImage)
+      console.log("CKCKKC", photo.uri);
+      console.log(capturedImage);
     }
   };
 
@@ -78,21 +71,51 @@ export default function AiLens() {
     setCapturedImage("");
   };
 
+  const base64ToUint8Array = (base64: any) => {
+    try {
+      const binaryString = Buffer.from(base64, "base64").toString("ascii");
+      const len = binaryString.length;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      return bytes.toString();
+    } catch (err) {
+      return null;
+    }
+  };
+
   const convertUriToPngBlob = async (uri: any) => {
-    const response = await fetch(uri);
-    const result = response.blob();
-    return result;
+    try {
+      const response = await fetch(uri);
+      console.log("RESPONSE WOI", response);
+      const result = await response.blob();
+      console.log("TESTING11", result);
+
+      // return result;
+      // Read the file as Base64
+      const fileContents = await FileSystem.readAsStringAsync(uri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+      const blob = base64ToUint8Array(fileContents);
+      return blob;
+    } catch (error) {
+      console.error("Error converting URI to Blob:", error);
+      throw error;
+    }
   };
 
   const sendImage = async () => {
-    console.log("WKWKW OWI")
+    console.log("WKWKW OWI");
 
     const formData = new FormData();
-    formData.append("file", await convertUriToPngBlob(capturedImage));
+    // formData.append("file", await convertUriToPngBlob(capturedImage));
+
     formData.append("upload_preset", "gymme_app");
-    formData.append("cloud_name", "dmgpda5o7");
+    // formData.append("cloud_name", "dmgpda5o7");
 
     try {
+      console.log("CIH", formData);
       const response = await fetch(
         `https://api.cloudinary.com/v1_1/dmgpda5o7/image/upload`,
         {
@@ -100,24 +123,38 @@ export default function AiLens() {
           body: formData,
         }
       );
+      console.log(response);
 
       const result = await response.json();
-      console.log(result)
+      console.log(result);
       //send data to backend -> secureURL to get String of eq data
       //add 1 variabel to store the data
 
-      const responseSearch = await aiSearch(result.public_id);
-      console.log(responseSearch)
+      // const responseSearch = await aiSearch(result.public_id);
+      // console.log(responseSearch)
       // handleSubmit()
     } catch (error) {
-      console.log(error); 
+      console.log(error);
       return;
     }
   };
 
+  // const testing = () => {
+  //   const cld = new Cloudinary({
+  //     cloud: {
+  //       cloudName: "<your_cloud_name>",
+  //     },
+  //     url: {
+  //       secure: true,
+  //     },
+  //   });
+  // };
+
   const handleSubmit = () => {
-    router.push(searchResultHelper({path:"searchResult", name:"mock"}) as any)
-  }
+    router.push(
+      searchResultHelper({ path: "searchResult", name: "mock" }) as any
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -136,10 +173,10 @@ export default function AiLens() {
         <View style={styles.containerButton}>
           <View style={styles.buttonContainer}>
             <Pressable style={styles.button} onPress={resetImage}>
-              <Image source={reset} style={styles.logo}></Image>
+              <MaterialIcons name="restart-alt" size={36} color="#000" />
             </Pressable>
             <Pressable style={styles.button} onPress={sendImage}>
-              <Image source={next} style={styles.logo}></Image>
+              <MaterialIcons name="arrow-forward-ios" size={36} color="#000" />
             </Pressable>
           </View>
         </View>
@@ -147,7 +184,7 @@ export default function AiLens() {
         <View style={styles.containerButton}>
           <View style={styles.buttonContainer}>
             <Pressable style={styles.buttonGallery} onPress={pickImage}>
-              <Image source={gallery} style={styles.logo}></Image>
+              <MaterialIcons name="photo-library" size={48} color="#fff" />
             </Pressable>
             <Pressable style={styles.button} onPress={takePicture}></Pressable>
             <Pressable
@@ -156,7 +193,7 @@ export default function AiLens() {
                 setType(type === "back" ? "front" : "back");
               }}
             >
-              <Image source={flip} style={styles.logo}></Image>
+              <MaterialIcons name="flip-camera-ios" size={36} color="#000" />
             </Pressable>
           </View>
         </View>
