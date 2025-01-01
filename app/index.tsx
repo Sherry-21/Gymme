@@ -24,10 +24,6 @@ import Loading from "@/components/loading";
 import LoginLogo from "@/assets/images/login/loginLogo";
 
 SplashScreen.preventAutoHideAsync();
-SplashScreen.setOptions({
-  duration: 1000,
-  fade: true,
-});
 
 const lock = require("@/assets/images/login/lock.png");
 const emailImage = require("@/assets/images/login/email.png");
@@ -91,6 +87,7 @@ export default function App() {
       try {
         setIsLoading(true)
         const response = await userLogin(getPayload());
+        console.log("ckck", response)
         setIsLoading(false)
         if (response == null || response.success == false) {
           throw new Error("Invalid login credentials");
@@ -253,6 +250,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#F39C12",
   },
   errorText: {
+    fontFamily: "Poppins",
     color: "white",
     fontSize: 14,
   },
@@ -265,8 +263,7 @@ const styles = StyleSheet.create({
   },
   titleNotFound: {
     fontSize: 20,
-    fontFamily: "Poppins",
-    fontWeight: "bold",
+    fontFamily: "PoppinsBold",
     color: "#F39C12",
     marginBottom: 5,
   },

@@ -133,8 +133,10 @@ export default function ProfilePage() {
     }
 
     try {
+      setIsLoading(true);
       const response = await postWeight(getPayload());
-
+      setIsLoading(false);
+      console.log(response);
       await setWeight(updatedWeight);
 
       setShowUpdateModal(false);
@@ -188,8 +190,8 @@ export default function ProfilePage() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="#F39C12" />
       <ScrollView>
-        <StatusBar backgroundColor="#ff6347" barStyle="light-content" />
         <View style={styles.header}>
           <View style={styles.headerContent}>
             <View style={styles.welcomeContainer}>
@@ -214,18 +216,18 @@ export default function ProfilePage() {
               }}
             >
               <View style={styles.iconSettings}>
-                <MaterialIcons name="settings" size={24} color={"#fff"} />
+                <MaterialIcons name="settings" size={22} color={"#fff"} />
                 <Pressable onPress={press}>
                   {isPressed ? (
                     <MaterialIcons
                       name="keyboard-arrow-up"
-                      size={24}
+                      size={22}
                       color={"#fff"}
                     />
                   ) : (
                     <MaterialIcons
                       name="keyboard-arrow-down"
-                      size={24}
+                      size={22}
                       color={"#fff"}
                     />
                   )}
@@ -240,11 +242,13 @@ export default function ProfilePage() {
                     >
                       <MaterialIcons
                         name="person"
-                        size={24}
+                        size={22}
                         color={Colors.gymme.placeholder}
                         style={{ marginRight: 15 }}
                       />
-                      <Text style={{ fontFamily: "Poppins" }}>profile</Text>
+                      <Text style={{ fontFamily: "Poppins", fontSize: 13 }}>
+                        profile
+                      </Text>
                     </Pressable>
                     <View
                       style={{ justifyContent: "center", alignItems: "center" }}
@@ -257,11 +261,13 @@ export default function ProfilePage() {
                     >
                       <MaterialIcons
                         name="logout"
-                        size={24}
+                        size={22}
                         color={Colors.gymme.placeholder}
                         style={{ marginRight: 15 }}
                       />
-                      <Text style={{ fontFamily: "Poppins" }}>logout</Text>
+                      <Text style={{ fontFamily: "Poppins", fontSize: 13 }}>
+                        logout
+                      </Text>
                     </Pressable>
                   </View>
                 </View>
@@ -273,7 +279,7 @@ export default function ProfilePage() {
         <View style={styles.containerContent}>
           <View style={styles.weightCard}>
             <View>
-              <Text style={styles.weightTitle}>Current Weight</Text>
+              <Text style={styles.weightTitle}>Current weight</Text>
               <Text style={styles.weightInfo}>
                 {weight} kg - ({" "}
                 {formatDateToIndonesian(
@@ -285,17 +291,19 @@ export default function ProfilePage() {
                 <Text style={styles.weightHistory}>View weight history</Text>
               </Pressable>
             </View>
-            <Pressable
-              style={styles.updateButton}
-              onPress={() => setShowUpdateModal(true)}
-            >
-              <Text style={styles.updateButtonText}>Update</Text>
-            </Pressable>
+            <View style={styles.rightButton}>
+              <Pressable
+                style={styles.updateButton}
+                onPress={() => setShowUpdateModal(true)}
+              >
+                <Text style={styles.updateButtonText}>Update</Text>
+              </Pressable>
+            </View>
           </View>
 
           <View style={styles.featureCard}>
             <Text style={styles.featureText}>Bookmarked</Text>
-            <MaterialIcons name="bookmark-outline" size={40} color="#000" />
+            <MaterialIcons name="bookmark-outline" size={32} color="#000" />
             <Pressable style={styles.featureButton} onPress={goToBookmarked}>
               <Text style={styles.featureButtonText}>View</Text>
             </Pressable>
@@ -305,14 +313,14 @@ export default function ProfilePage() {
           <View style={styles.otherFeatures}>
             <View style={styles.featureCard}>
               <Text style={styles.featureText}>Workout calendar</Text>
-              <AntDesign name="calendar" size={40} color="#000" />
+              <AntDesign name="calendar" size={32} color="#000" />
               <Pressable style={styles.featureButton} onPress={goToCalendar}>
                 <Text style={styles.featureButtonText}>View</Text>
               </Pressable>
             </View>
             <View style={styles.featureCard}>
               <Text style={styles.featureText}>Workout timer</Text>
-              <AntDesign name="clockcircleo" size={40} color="#000" />
+              <AntDesign name="clockcircleo" size={32} color="#000" />
               <Pressable style={styles.featureButton} onPress={goToTimerList}>
                 <Text style={styles.featureButtonText}>View</Text>
               </Pressable>
@@ -336,7 +344,7 @@ export default function ProfilePage() {
                   style={styles.modalCloseButton}
                   onPress={() => setShowUpdateModal(false)}
                 >
-                  <AntDesign name="close" size={24} color="#333" />
+                  <AntDesign name="close" size={22} color="#333" />
                 </Pressable>
 
                 <Text style={styles.modalTitle}>Update Your Weight</Text>
@@ -381,7 +389,7 @@ export default function ProfilePage() {
               <MaterialIcons
                 style={styles.icon}
                 name="help"
-                size={50}
+                size={60}
                 color="#F39C12"
               />
               <Text style={styles.titleNotFound}>ARE YOU SURE?</Text>
@@ -423,7 +431,7 @@ const styles = StyleSheet.create({
   },
   settingDropdown: {
     position: "absolute",
-    top: 60,
+    top: 65,
     zIndex: 999,
     elevation: 10,
   },
@@ -431,6 +439,11 @@ const styles = StyleSheet.create({
     padding: 5,
     backgroundColor: "#fff",
     borderRadius: 15,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 5,
   },
   settingOption: {
     flexDirection: "row",
@@ -449,12 +462,12 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   header: {
-    backgroundColor: "#FFA500",
+    backgroundColor: "#F39C12",
     justifyContent: "space-between",
     flexDirection: "row",
     paddingHorizontal: 35,
-    paddingTop: 40,
-    paddingBottom: 20,
+    paddingTop: 30,
+    paddingBottom: 15,
     borderBottomLeftRadius: 50,
     borderBottomRightRadius: 50,
     marginBottom: 20,
@@ -467,15 +480,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   welcomeText: {
-    fontSize: 20,
-    fontFamily: "Poppins",
-    fontWeight: "bold",
+    fontSize: 16,
+    fontFamily: "PoppinsBold",
     color: "#fff",
   },
   name: {
-    fontSize: 20,
-    fontFamily: "Poppins",
-    fontWeight: "bold",
+    fontSize: 16,
+    fontFamily: "PoppinsBold",
     color: "#fff",
     textDecorationLine: "underline",
   },
@@ -485,7 +496,8 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
   userInfoText: {
-    fontSize: 16,
+    fontSize: 12,
+    fontFamily: "Poppins",
     color: "#fff",
     marginLeft: 5,
   },
@@ -495,11 +507,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   weightCard: {
+    flex: 1,
     backgroundColor: "#fff",
     borderWidth: 1,
     borderColor: "#000000",
     borderRadius: 15,
-    padding: 20,
+    padding: 15,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
@@ -511,44 +524,44 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.3,
     shadowRadius: 6,
-    // elevation: 3,
+    elevation: 3,
   },
   weightTitle: {
-    fontWeight: "bold",
-    fontSize: 16,
-    fontFamily: "Poppins",
-    marginBottom: 5,
+    fontSize: 14,
+    fontFamily: "PoppinsBold",
+    marginBottom: 3,
   },
   weightInfo: {
-    fontSize: 14,
+    fontSize: 12,
     fontFamily: "Poppins",
-    marginBottom: 5,
+    marginBottom: 3,
   },
   weightHistory: {
-    fontSize: 14,
+    fontSize: 12,
     fontFamily: "Poppins",
     color: "#0000FF",
     textDecorationLine: "underline",
-    // zIndex: 5,
+  },
+  rightButton: {
+    flex: 1,
+    height: "100%",
+    justifyContent: "flex-end",
+    alignItems: "flex-end",
   },
   updateButton: {
     backgroundColor: "#FFA500",
     paddingHorizontal: 15,
     paddingVertical: 5,
     borderRadius: 15,
-    position: "absolute",
-    bottom: 15,
-    right: 15,
   },
   updateButtonText: {
     color: "#000000",
-    fontSize: 12,
+    fontSize: 11,
     fontFamily: "Poppins",
   },
   sectionTitle: {
     fontSize: 18,
-    fontFamily: "Poppins",
-    fontWeight: "bold",
+    fontFamily: "PoppinsBold",
     marginBottom: 5,
   },
   otherFeatures: {
@@ -560,7 +573,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#000000",
     borderRadius: 15,
-    padding: 20,
+    padding: 15,
     marginBottom: 20,
     position: "relative",
     shadowColor: "#000",
@@ -573,9 +586,8 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   featureText: {
-    fontWeight: "bold",
-    fontSize: 16,
-    fontFamily: "Poppins",
+    fontSize: 14,
+    fontFamily: "PoppinsBold",
     marginBottom: 10,
   },
   featureButton: {
@@ -589,7 +601,7 @@ const styles = StyleSheet.create({
   },
   featureButtonText: {
     color: "#000000",
-    fontSize: 12,
+    fontSize: 11,
     fontFamily: "Poppins",
   },
   modalOverlay: {
@@ -622,10 +634,9 @@ const styles = StyleSheet.create({
     // zIndex: 1,
   },
   modalTitle: {
-    fontSize: 22,
-    fontFamily: "Poppins",
-    fontWeight: "bold",
-    color: "#333",
+    fontSize: 18,
+    fontFamily: "PoppinsBold",
+    color: "#000",
     marginBottom: 20,
     textAlign: "center",
   },
@@ -641,12 +652,12 @@ const styles = StyleSheet.create({
   weightInput: {
     flex: 1,
     height: 50,
-    fontSize: 18,
+    fontSize: 14,
     fontFamily: "Poppins",
     color: "#333",
   },
   unitText: {
-    fontSize: 16,
+    fontSize: 14,
     fontFamily: "Poppins",
     color: "#666",
     marginLeft: 10,
@@ -657,7 +668,7 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   cancelButton: {
-    flex: 1,
+    width: "45%",
     backgroundColor: "#f0f0f0",
     paddingVertical: 12,
     paddingHorizontal: 15,
@@ -666,12 +677,11 @@ const styles = StyleSheet.create({
   },
   cancelButtonText: {
     color: "#333",
-    fontSize: 16,
+    fontSize: 14,
     fontFamily: "Poppins",
-    fontWeight: "bold",
   },
   updateButtonModal: {
-    flex: 1,
+    width: "45%",
     backgroundColor: "#FFA500",
     paddingVertical: 12,
     paddingHorizontal: 15,
@@ -680,9 +690,8 @@ const styles = StyleSheet.create({
   },
   updateButtonTextModal: {
     color: "#333",
-    fontSize: 16,
+    fontSize: 14,
     fontFamily: "Poppins",
-    fontWeight: "bold",
   },
 
   errorToaster: {
@@ -734,10 +743,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   titleNotFound: {
-    fontSize: 20,
-    fontFamily: "Poppins",
-    fontWeight: "bold",
-    color: "#F39C12",
+    fontSize: 18,
+    fontFamily: "PoppinsBold",
+    color: Colors.gymme.orange,
     marginBottom: 5,
   },
   subheaderText: {

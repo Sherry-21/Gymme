@@ -15,7 +15,8 @@ export default function TabLayout() {
         tabBarInactiveTintColor: Colors["gymme"].placeholder,
         tabBarStyle: {
           backgroundColor: "#F39C12",
-          height: 60,
+          padding: 10,
+          height: 55,
         },
         tabBarLabelStyle: {
           fontSize: 10,
@@ -32,6 +33,7 @@ export default function TabLayout() {
             <TabBarIcon
               name={focused ? "newspaper" : "newspaper-outline"}
               color={color}
+              size={24}
             />
           ),
         }}
@@ -44,6 +46,7 @@ export default function TabLayout() {
             <TabBarIcon
               name={focused ? "search" : "search-outline"}
               color={color}
+              size={24}
             />
           ),
         }}
@@ -54,8 +57,9 @@ export default function TabLayout() {
           title: "other",
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon
-              name={focused ? "code-slash" : "code-slash-outline"}
+              name={focused ? "person" : "person-outline"}
               color={color}
+              size={24}
             />
           ),
         }}

@@ -8,6 +8,8 @@ import {
   ScrollView,
   Dimensions,
   SafeAreaView,
+  Pressable,
+  StatusBar,
 } from "react-native";
 import {
   IOScrollView,
@@ -22,6 +24,7 @@ import { parseDate } from "../helper/dateFormatter";
 import Loading from "@/components/loading";
 import { router, useFocusEffect } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
+import { FlatList } from "react-native";
 
 const dummy = require("@/assets/images/home/dummy img.png");
 
@@ -35,7 +38,7 @@ export default function HomeScreen() {
   const limit: string = "15";
 
   const mainRef = useRef(null);
-  
+
   const scrollViewRef = useRef<IOScrollViewController>(null);
 
   useFocusEffect(
@@ -57,7 +60,7 @@ export default function HomeScreen() {
         finalValue
       );
       console.log(responseSearch);
-      if (!responseSearch || responseSearch.success == false) { 
+      if (!responseSearch || responseSearch.success == false) {
         throw new Error("Data not found");
       } else {
         const dataRow = responseSearch.data.rows;
@@ -73,29 +76,25 @@ export default function HomeScreen() {
     }
   };
 
-  const fetchApi = async (inView: Boolean) => {
-    if (inView == true && page != "0") {
-      try {
-        const responseObserver = await getAllInformationBySearch(
-          page,
-          limit,
-          finalValue
-        );
-        if (!responseObserver || responseObserver.success == false) {
-          throw new Error("Data not found");
-        } else {
-          const dataRow = await responseObserver.data.rows;
-          if (dataRow != null) {
-            setNews((prevNews) => [...prevNews, ...dataRow]);
-            setPage((parseInt(page) + 1).toString());
-            scrollViewRef.current?.scrollToEnd();
-          }
+  const fetchApi = async () => {
+    try {
+      const responseObserver = await getAllInformationBySearch(
+        page,
+        limit,
+        finalValue
+      );
+      if (!responseObserver || responseObserver.success == false) {
+        throw new Error("Data not found");
+      } else {
+        const dataRow = await responseObserver.data.rows;
+        if (dataRow != null) {
+          setNews((prevNews) => [...prevNews, ...dataRow]);
+          setPage((parseInt(page) + 1).toString());
+          scrollViewRef.current?.scrollToEnd();
         }
-      } catch (error) {
-        router.push("/errorPage");
       }
-    } else {
-      console.log(inView);
+    } catch (error) {
+      router.push("/errorPage");
     }
   };
 
@@ -123,49 +122,56 @@ export default function HomeScreen() {
     }
   };
 
+  const renderItem = ({ item }: { item: any }) => (
+    <NewsButton
+      id={item.information_id}
+      image={item.information_header_path_content}
+      title={item.information_header}
+      date={item.information_date_created}
+    />
+  );
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: Colors.gymme.background }}>
-      <IOScrollView>
-        <ScrollView style={styles.baseColor} ref={scrollViewRef}>
-          <Image
-            style={styles.aboveImage}
-            source={require("@/assets/images/news/above image.png")}
-          ></Image>
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+      <View style={styles.baseColor}>
+        <Image
+          style={styles.aboveImage}
+          source={require("@/assets/images/news/above image.png")}
+        ></Image>
 
-          <View style={styles.mainLayout}>
-            <View style={styles.textField}>
-              {/* <Image style={styles.image} source={searchImage}></Image> */}
-
-              <View style={{ alignItems: "center", justifyContent: "center"}}>
-                <MaterialIcons name="search" size={24} />
-              </View>
-              <TextInput
-                style={styles.textInput}
-                value={value}
-                onChangeText={setValue}
-                placeholder={"Search news"}
-                placeholderTextColor={Colors.gymme.placeholder}
-                underlineColorAndroid="transparent"
-                onSubmitEditing={handleSubmit}
-              ></TextInput>
+        <View style={styles.mainLayout}>
+          <View style={styles.textField}>
+            <View style={{ alignItems: "center", justifyContent: "center" }}>
+              <MaterialIcons name="search" size={24} />
             </View>
-
-            {news.map((item: any, index: number) => (
-              <NewsButton
-                key={index}
-                id={item.information_id}
-                image={item.information_header_path_content}
-                title={item.information_header}
-                date={parseDate(item.information_date_created)}
-              />
-            ))}
+            <TextInput
+              style={styles.textInput}
+              value={value}
+              onChangeText={setValue}
+              placeholder={"Search news"}
+              placeholderTextColor={Colors.gymme.placeholder}
+              underlineColorAndroid="transparent"
+              onSubmitEditing={handleSubmit}
+            ></TextInput>
           </View>
-        </ScrollView>
-        <InView
-          style={styles.intersection}
-          onChange={(inView: boolean) => fetchApi(inView)}
-        ></InView>
-      </IOScrollView>
+        </View>
+      </View>
+      <FlatList
+        style={{ marginHorizontal: 25, marginBottom: 15 }}
+        data={news}
+        showsHorizontalScrollIndicator={false}
+        showsVerticalScrollIndicator={false}
+        renderItem={renderItem}
+        keyExtractor={(item, index) => `${item.information_id}-${index}`}
+        onEndReached={({ distanceFromEnd }) => {
+          if (distanceFromEnd < 0) {
+            return;
+          }
+          fetchApi();
+        }}
+        onEndReachedThreshold={0.5}
+      />
       {isLoading ? <Loading /> : null}
     </SafeAreaView>
   );
@@ -175,16 +181,15 @@ const styles = StyleSheet.create({
   aboveImage: {
     flex: 1,
     width: "100%",
-    height: 180,
+    height: 100,
     position: "absolute",
   },
   baseColor: {
     backgroundColor: "#fff",
-    // flex: 1,
   },
   mainLayout: {
     marginHorizontal: 25,
-    marginVertical: 40,
+    marginTop: 40,
     alignItems: "center",
   },
   textField: {
@@ -194,7 +199,7 @@ const styles = StyleSheet.create({
     width: "100%",
     paddingHorizontal: 15,
     paddingVertical: 5,
-    marginTop: 100,
+    marginTop: 40,
     backgroundColor: Colors.gymme.background,
     marginBottom: 15,
   },
@@ -206,8 +211,8 @@ const styles = StyleSheet.create({
   },
   textInput: {
     flex: 1,
-    padding: 10,
-    fontSize: 14,
+    padding: 8,
+    fontSize: 12,
     alignItems: "center",
     fontFamily: "Poppins",
   },

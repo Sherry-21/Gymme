@@ -275,7 +275,7 @@ const WorkoutTimer: React.FC = () => {
   };
 
   const getTimerAPI = async () => {
-    console.log("HIT GET")
+    console.log("HIT GET");
     setIsLoading(true);
     const response = await getTimerQueue(parseInt(timerId.toString()));
     setIsLoading(false);
@@ -360,11 +360,17 @@ const WorkoutTimer: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#F39C12" />
-      <View style={styles.headerContainer}>
-        <Pressable style={styles.backgroundArrow} onPress={() => backButton()}>
-          <MaterialIcons name="arrow-back-ios-new" size={24} color="#fff" />
-        </Pressable>
-        <Text style={styles.headerTitle}>Timer</Text>
+      <View style={styles.headerMainContainer}>
+        <View style={styles.headerContainer}>
+          <Pressable
+            style={styles.backgroundArrow}
+            onPress={() => backButton()}
+          >
+            <MaterialIcons name="arrow-back-ios-new" size={24} color="#fff" />
+          </Pressable>
+
+          <Text style={styles.headerTitle}>Timer</Text>
+        </View>
       </View>
 
       <View style={styles.timerContainer}>
@@ -393,7 +399,7 @@ const WorkoutTimer: React.FC = () => {
                   style={{ marginLeft: 5 }}
                   onPress={() => deleteQueueTimer(exercise.id, index)}
                 >
-                  <MaterialIcons name="delete" size={24} color="#A77800" />
+                  <MaterialIcons name="delete" size={22} color="#A77800" />
                 </Pressable>
               </View>
             </View>
@@ -418,7 +424,7 @@ const WorkoutTimer: React.FC = () => {
           </Pressable>
         )}
         <Pressable style={styles.addButton} onPress={() => reset()}>
-          <Text style={styles.buttonText}>reset</Text>
+          <Text style={styles.buttonText}>Reset</Text>
         </Pressable>
       </View>
 
@@ -509,12 +515,19 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fff",
   },
+  headerMainContainer: {
+    paddingTop: 30,
+    paddingBottom: 15,
+    marginBottom: 15,
+    backgroundColor: Colors.gymme.orange,
+  },
   headerContainer: {
     justifyContent: "center",
-    paddingTop: 40,
-    paddingBottom: 20,
-    backgroundColor: Colors.gymme.orange,
-    marginBottom: 15,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   arrowBack: {
     width: 24,
@@ -528,16 +541,15 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   headerTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
+    fontSize: 22,
     textAlign: "center",
-    fontFamily: "Poppins",
+    fontFamily: "PoppinsBold",
     color: "#fff",
   },
-  timerContainer: { alignItems: "center", marginVertical: 10 },
+  timerContainer: { alignItems: "center", marginVertical: 5 },
   timerCircle: {
-    width: 300,
-    height: 300,
+    width: 240,
+    height: 240,
     borderRadius: 150,
     backgroundColor: "#F39C12",
     justifyContent: "center",
@@ -546,58 +558,55 @@ const styles = StyleSheet.create({
     borderColor: "#A77800",
   },
   timerName: {
-    fontSize: 24,
+    fontSize: 20,
+    fontFamily: "PoppinsBold",
     color: "white",
     position: "absolute",
-    top: 60,
-    fontWeight: "bold",
+    top: 50,
     textAlign: "center",
   },
   skipButton: {
     position: "absolute",
-    bottom: 45,
+    bottom: 50,
     paddingHorizontal: 25,
-    paddingVertical: 8,
+    paddingVertical: 6,
     backgroundColor: "#a77800",
     borderRadius: 15,
     alignItems: "center",
     justifyContent: "center",
   },
   skipText: {
-    fontSize: 18,
+    fontSize: 12,
     color: "white",
-    fontWeight: "bold",
     textAlign: "center",
-    fontFamily: "Poppins",
+    fontFamily: "PoppinsBold",
   },
   timerDisplay: {
-    fontSize: 54,
-    fontFamily: "Poppins",
-    fontWeight: "bold",
+    fontSize: 40,
+    fontFamily: "PoppinsBold",
     color: "white",
   },
   queueTitle: {
-    fontSize: 28,
-    fontFamily: "Poppins",
-    fontWeight: "bold",
+    fontSize: 22,
+    fontFamily: "PoppinsBold",
     marginTop: 15,
-    marginBottom: 10,
     textAlign: "left",
     marginHorizontal: 25,
   },
-  queueList: { marginHorizontal: 25, marginTop: 10 },
+  queueList: { marginHorizontal: 25, marginTop: 5 },
   queueItem: {
     flexDirection: "row",
     justifyContent: "space-between",
-    padding: 15,
+    alignItems: "center",
+    padding: 13,
     backgroundColor: "#fff",
-    marginBottom: 10,
+    marginBottom: 15,
     borderRadius: 10,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.3,
     shadowRadius: 3,
-    elevation: 5,
+    elevation: 2,
   },
   queueRight: {
     flexDirection: "row",
@@ -605,16 +614,17 @@ const styles = StyleSheet.create({
   },
   alwaysRight: {
     flexDirection: "row",
+    alignItems: "center",
     justifyContent: "flex-end",
     marginLeft: 10,
   },
-  queueItemText: { fontSize: 20, fontWeight: "bold", fontFamily: "Poppins" },
-  queueItemTime: { fontSize: 20, fontWeight: "bold", fontFamily: "Poppins" },
+  queueItemText: { fontSize: 16, fontFamily: "Poppins" },
+  queueItemTime: { fontSize: 16, fontFamily: "Poppins" },
   controlSection: {
     flexDirection: "row",
     justifyContent: "space-around",
     alignItems: "center",
-    padding: 20,
+    padding: 15,
     backgroundColor: "#F39C12",
     borderTopLeftRadius: 50,
     borderTopRightRadius: 50,
@@ -622,9 +632,8 @@ const styles = StyleSheet.create({
   addButton: {
     width: "30%",
     backgroundColor: "#fff",
-    paddingVertical: 15,
-    paddingHorizontal: 40,
     borderRadius: 20,
+    paddingVertical: 8,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -637,8 +646,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   buttonText: {
-    fontSize: 18,
-    fontWeight: "bold",
+    fontSize: 14,
     color: "black",
     fontFamily: "Poppins",
   },
@@ -655,15 +663,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   modalTitle: {
-    fontSize: 20,
-    fontFamily: "Poppins",
-    fontWeight: "bold",
+    fontSize: 18,
+    fontFamily: "PoppinsBold",
     marginBottom: 20,
   },
   modalInput: {
     borderColor: "#D1D5DB",
     borderWidth: 1,
     padding: 10,
+    fontSize: 14,
     width: "100%",
     borderRadius: 8,
     marginBottom: 10,
@@ -722,21 +730,21 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: "white",
+    fontFamily: "Poppins",
     fontSize: 14,
   },
   errorBox: {
     width: "70%",
-    padding: 20,
+    padding: 40,
     backgroundColor: "#fff",
     borderRadius: 10,
     alignItems: "center",
   },
   titleNotFound: {
-    fontSize: 24,
-    fontFamily: "Poppins",
-    fontWeight: "bold",
+    fontSize: 22,
+    fontFamily: "PoppinsBold",
     color: "#F39C12",
-    marginBottom: 10,
+    marginBottom: 15,
   },
   subheaderText: {
     fontSize: 14,

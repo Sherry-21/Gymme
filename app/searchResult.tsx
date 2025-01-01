@@ -4,6 +4,7 @@ import {
   Pressable,
   SafeAreaView,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   View,
@@ -61,6 +62,7 @@ export default function searchResult() {
 
   return (
     <SafeAreaView style={styles.baseLayout}>
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       {isLoading ? (
         <Loading />
       ) : (
@@ -125,16 +127,15 @@ const styles = StyleSheet.create({
     zIndex: 5,
   },
   eqImage: {
-    width: 200,
-    height: 200,
+    width: 180,
+    height: 180,
     borderRadius: 100,
     borderWidth: 1,
-    borderColor: "#000",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.25,
-    shadowRadius: 10,
-    elevation: 10,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 5,
     backgroundColor: "#fff",
   },
   loadImage: {
@@ -147,31 +148,27 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   headerText: {
-    fontSize: 30,
-    fontWeight: "bold",
-    fontFamily: "Poppins",
+    fontSize:24,
+    fontFamily: "PoppinsBold",
     marginTop: 20,
-    marginBottom: 5,
+    marginBottom: 3,
   },
   subText: {
-    fontSize: 19,
+    fontSize: 16,
     marginBottom: 15,
     fontFamily: "Poppins",
     textAlign: "center",
   },
   buttonMuscle: {
-    padding: 15,
-    marginBottom: 15,
-    borderWidth: 1,
-    borderRadius: 15,
+    flex: 1,
     width: "100%",
-    borderColor: "#fff",
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    shadowOffset: {
-      width: 0,
-      height: 5,
-    },
+    paddingVertical: 8,
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
     elevation: 5,
   },
   mainLoading: {
@@ -182,7 +179,7 @@ const styles = StyleSheet.create({
   },
   muscleOption: {
     textAlign: "center",
-    fontSize: 20,
+    fontSize: 16,
     fontFamily: "Poppins",
   },
 });

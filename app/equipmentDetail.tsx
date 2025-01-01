@@ -8,6 +8,7 @@ import {
   Text,
   View,
   ScrollView,
+  StatusBar,
 } from "react-native";
 import { useVideoPlayer, VideoView } from "expo-video";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
@@ -45,16 +46,51 @@ export default function equipmentDetail() {
     }, [])
   );
 
+  const checkImageUri = async (uri: string) => {
+    try {
+      const response = await fetch(uri);
+      if (!response.ok) {
+        throw new Error("Image not accessible");
+      }
+    } catch (error) {
+      setErrorImage(true);
+      return false;
+    }
+    return true;
+  };
+
+  const validateLink = async (data: any) => {
+    console.log(data)
+    const checkImageUrl = data.equipment_detail?.forEach(
+      async (detail: any) => {
+        console.log("WKWK APA SIH")
+        console.log(detail.TutorialPath)
+        if (detail.TutorialPath.length == 0) {
+          detail.TutorialPath = null;
+        } else {
+          const responseImageUrl = await checkImageUri(
+            detail.TutorialPath
+          );
+          console.log(responseImageUrl)
+          if (responseImageUrl == false) {
+            detail.TutorialPath = null;
+          }
+        }
+      }
+    );
+  };
+
   const fetchEquipmentDetail = async () => {
     try {
       setIsLoading(true);
       const response = await getCourseById(parseInt(muscleId.toString()));
       setIsLoading(false);
       console.log(response);
-      if (response.success == false) {
+      if (!response || response.success == false) {
         throw new Error("error getting data");
       }
       const data = response.data;
+      await validateLink(data);
       setEquipmentDetail(data);
       setVideoLink(data.videoLink);
       setBookmark(data.is_bookmark);
@@ -65,10 +101,9 @@ export default function equipmentDetail() {
   };
 
   const backButton = () => {
-    if(router.canGoBack()) {
+    if (router.canGoBack()) {
       router.back();
-    }
-    else{
+    } else {
       router.push("/search");
     }
   };
@@ -78,7 +113,7 @@ export default function equipmentDetail() {
     console.log(bookmarkTemp);
     if (bookmarkTemp == true) {
       const data = await postEqBookmarkList(parseInt(muscleId.toString()));
-      console.log("true : ", data)
+      console.log("true : ", data);
       if (!data || data.success == false) {
         setErrorToaster(true);
         setBookmark(bookmark);
@@ -86,7 +121,7 @@ export default function equipmentDetail() {
       }
     } else {
       const data = await deleteEqBookmarkList(parseInt(muscleId.toString()));
-      console.log("false : ", data)
+      console.log("false : ", data);
       if (!data || data.success == false) {
         setErrorToaster(true);
         setBookmark(bookmark);
@@ -102,33 +137,37 @@ export default function equipmentDetail() {
 
   const pressedErrorToaster = () => {
     setErrorToaster(false);
-  }
+  };
 
   return (
     <SafeAreaView style={styles.baseLayout}>
-      <ScrollView style={{ marginHorizontal: 25, marginVertical: 40 }}>
+      <StatusBar barStyle="light-content" backgroundColor="#F39C12" />
+      <View style={styles.headerContainer}>
+        <Pressable style={styles.backgroundArrow} onPress={backButton}>
+          <MaterialIcons name={"arrow-back-ios-new"} size={24} color="#fff" />
+        </Pressable>
+        <View>
+          <Text style={styles.titleDetail}>
+            {equipmentDetail?.equipment_master_name}
+          </Text>
+          <Text style={styles.titleSubDetail}>
+            {equipmentDetail?.equipment_mapping_data_entity_name}
+          </Text>
+        </View>
+        <Pressable onPress={bookmarkNews}>
+          {bookmark ? (
+            <MaterialIcons name="bookmark" size={32} color="#fff" />
+          ) : (
+            <MaterialIcons name="bookmark-outline" size={32} color="#fff" />
+          )}
+        </Pressable>
+      </View>
+      <ScrollView
+        style={{ marginHorizontal: 25, marginBottom: 30 }}
+        showsHorizontalScrollIndicator={false}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.mainLayout}>
-          <View style={styles.headerContainer}>
-            <Pressable style={styles.backgroundArrow} onPress={backButton}>
-              <MaterialIcons name={"arrow-back-ios-new"} size={24} />
-            </Pressable>
-            <View>
-              <Text style={styles.titleDetail}>
-                {equipmentDetail?.equipment_master_name}
-              </Text>
-              <Text style={styles.titleSubDetail}>
-                {equipmentDetail?.equipment_mapping_data_entity_name}
-              </Text>
-            </View>
-            <Pressable onPress={bookmarkNews}>
-              {bookmark ? (
-                <MaterialIcons name="bookmark" size={36} color="#000" />
-              ) : (
-                <MaterialIcons name="bookmark-outline" size={36} color="#000" />
-              )}
-            </Pressable>
-          </View>
-
           <View style={styles.secondContainer}>
             <Image
               style={styles.chessImage}
@@ -198,7 +237,7 @@ export default function equipmentDetail() {
                 <View key={index}>
                   <Text style={styles.desc}>{detail.TutorialParagraph}</Text>
                   <Text>{"\n"}</Text>
-                  {errorImage ? null : (
+                  {detail.TutorialPath == null ? null : (
                     <View>
                       <Image
                         style={styles.eqImage}
@@ -270,14 +309,17 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   headerContainer: {
+    paddingHorizontal: 25,
+    paddingTop: 30,
+    paddingBottom: 15,
     display: "flex",
     width: "100%",
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    backgroundColor: Colors.gymme.orange,
     borderBottomWidth: 1,
     borderBottomColor: Colors.gymme.placeholder,
-    paddingBottom: 10,
 
     //ios
     shadowColor: "#000",
@@ -286,13 +328,14 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
   },
   titleDetail: {
-    fontSize: 23,
-    fontFamily: "Poppins",
-    fontWeight: "bold",
+    fontSize: 20,
+    color: "#fff",
+    fontFamily: "PoppinsBold",
   },
   titleSubDetail: {
-    fontSize: 16,
-    color: Colors.gymme.placeholder,
+    fontSize: 14,
+    color: "#fff",
+    fontFamily: "Poppins",
   },
   bookmarkImage: {
     width: 27,
@@ -318,7 +361,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   tableCell: {
-    padding: 8,
+    padding: 4,
     fontFamily: "Poppins",
   },
   left: {
@@ -328,38 +371,35 @@ const styles = StyleSheet.create({
     textAlign: "right",
   },
   headerCell: {
-    fontWeight: "bold",
+    fontFamily: "Poppins",
   },
   tableContainer: {
     width: "65%",
     borderWidth: 1,
     borderRadius: 15,
-    padding: 8,
+    padding: 4,
     marginLeft: 30,
   },
   headerTable: {
-    fontSize: 20,
-    fontWeight: "bold",
+    paddingVertical: 4,
+    fontSize: 18,
     textAlign: "center",
-    fontFamily: "Poppins",
-    paddingBottom: 8,
-    paddingTop: 8,
+    fontFamily: "PoppinsBold",
   },
   headerText: {
-    fontFamily: "Poppins",
-    fontSize: 22,
-    fontWeight: "bold",
+    fontFamily: "PoppinsBold",
+    fontSize: 18,
     marginTop: 25,
-    marginBottom: 8,
+    marginBottom: 5,
   },
   desc: {
-    fontSize: 14,
+    fontSize: 12,
     fontFamily: "Poppins",
     textAlign: "justify",
   },
   video: {
     width: "100%",
-    height: 200,
+    height: 180,
   },
 
   //error toaster
@@ -391,9 +431,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   titleNotFound: {
-    fontSize: 20,
-    fontFamily: "Poppins",
-    fontWeight: "bold",
+    fontSize: 18,
+    fontFamily: "PoppinsBold",
     color: "#F39C12",
     marginBottom: 5,
   },

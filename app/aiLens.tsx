@@ -110,7 +110,7 @@ export default function AiLens() {
       console.log(responseSearch)
       // handleSubmit()
     } catch (error) {
-      console.log(error);
+      console.log(error); 
       return;
     }
   };

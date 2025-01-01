@@ -70,9 +70,11 @@ const TimerList: React.FC = () => {
         timer_name: name,
         timer_description: description,
       };
+      console.log(newTimer)
       setShowAddModal(false);
       setIsLoading(true);
       const response = await postTimer(newTimer);
+      console.log(response)
       setIsLoading(false);
 
       const addedTimer = response.data;
@@ -92,7 +94,9 @@ const TimerList: React.FC = () => {
 
   const handleDeleteTimer = async (timer_id: number) => {
     try {
+      setIsLoading(true);
       const response = await deleteTimer(timer_id);
+      setIsLoading(false);
       if (response == null) {
         return;
       }
@@ -117,13 +121,16 @@ const TimerList: React.FC = () => {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#F39C12" />
-      <View style={styles.headerContainer}>
-        <Pressable style={styles.backgroundArrow} onPress={() => backButton()}>
-          <MaterialIcons name="arrow-back-ios-new" size={24} color="#fff" />
-        </Pressable>
+      <View style={styles.headerMainContainer}>
+        <View style={styles.headerContainer}>
+          <Pressable style={styles.backgroundArrow} onPress={() => backButton()}>
+            <MaterialIcons name="arrow-back-ios-new" size={24} color="#fff" />
+          </Pressable>
 
-        <Text style={styles.headerTitle}>Timer List</Text>
+          <Text style={styles.headerTitle}>Timer List</Text>
+        </View>
       </View>
+
 
       {predefinedTimers == null || predefinedTimers.length === 0 ? (
         <View style={styles.emptyStateContainer}>
@@ -153,7 +160,7 @@ const TimerList: React.FC = () => {
                   style={styles.deleteButton}
                   onPress={() => handleDeleteTimer(timer.timer_id)}
                 >
-                  <AntDesign name="delete" size={22} color="#ff0000" />
+                  <AntDesign name="delete" size={20} color="#ff0000" />
                 </Pressable>
               </Pressable>
             </View>
@@ -214,12 +221,14 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fff",
   },
+  headerMainContainer: {
+    paddingTop: 30,
+    paddingBottom: 15,
+    marginBottom: 15,
+    backgroundColor: Colors.gymme.orange,
+  },
   headerContainer: {
     justifyContent: "center",
-    paddingTop: 40,
-    paddingBottom: 20,
-    backgroundColor: Colors.gymme.orange,
-    marginBottom: 15,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
@@ -240,12 +249,10 @@ const styles = StyleSheet.create({
     color: "white",
   },
   headerTitle: {
-    fontSize: 24,
-    fontFamily: "Poppins",
-    fontWeight: "bold",
+    fontSize: 22,
+    fontFamily: "PoppinsBold",
     color: "white",
     textAlign: "center",
-    flex: 1,
   },
   timerListContainer: {
     paddingHorizontal: 25,
@@ -259,7 +266,7 @@ const styles = StyleSheet.create({
   timerItem: {
     flexDirection: "row",
     flex: 1,
-    padding: 20,
+    padding: 15,
     backgroundColor: "#fff",
     borderRadius: 10,
     shadowColor: "#000",
@@ -273,21 +280,16 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   timerName: {
-    fontSize: 20,
+    fontSize: 16,
     fontFamily: "Poppins",
-    fontWeight: "bold",
-    marginBottom: 5,
-    color: "#333",
+    color: "#000",
   },
   timerDescription: {
-    fontSize: 16,
+    fontSize: 12 ,
     fontFamily: "Poppins",
     color: "#666",
   },
   deleteButton: {
-    // backgroundColor: "#FF6347",
-    padding: 10,
-    borderRadius: 5,
     justifyContent: "center",
   },
   emptyStateContainer: {
@@ -297,14 +299,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 25,
   },
   emptyStateText: {
-    fontSize: 22,
-    fontWeight: "bold",
+    fontSize: 18,
     color: "#333",
-    marginBottom: 10,
-    fontFamily: "Poppins",
+    marginBottom: 5,
+    fontFamily: "PoppinsBold",
   },
   emptyStateSubtext: {
-    fontSize: 16,
+    fontSize: 14,
     color: "#666",
     fontFamily: "Poppins",
   },
@@ -344,14 +345,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   modalTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
+    fontSize: 18,
     marginBottom: 20,
+    fontFamily: "PoppinsBold"
   },
   modalInput: {
     borderColor: "#D1D5DB",
     borderWidth: 1,
     padding: 10,
+    fontSize: 14,
     width: "100%",
     borderRadius: 8,
     marginBottom: 10,
@@ -365,6 +367,7 @@ const styles = StyleSheet.create({
   modalCancelButton: {
     padding: 10,
     borderRadius: 8,
+    fontSize: 14,
     backgroundColor: "#E5E7EB",
     marginHorizontal: 5,
     fontFamily: "Poppins",
@@ -374,6 +377,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: "#FFA500",
     marginHorizontal: 5,
+    fontSize: 14,
   },
 });
 

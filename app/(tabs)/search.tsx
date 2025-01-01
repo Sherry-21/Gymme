@@ -7,6 +7,7 @@ import {
   Pressable,
   SafeAreaView,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   TextInput,
@@ -117,12 +118,13 @@ export default function SearchScreen() {
 
   return (
     <SafeAreaView style={styles.saveArea}>
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       <ScrollView style={styles.mainLayout}>
         <View style={styles.container}>
           <View style={styles.textField}>
             <View style={{ alignItems: "center", justifyContent: "center" }}>
               <MaterialIcons name="search" size={24} />
-            </View>{" "}
+            </View>
             <TextInput
               style={styles.textInput}
               value={tempValue}
@@ -142,6 +144,7 @@ export default function SearchScreen() {
           {value ? (
             searchItem.map((item: any) => (
               <Pressable
+                key = {item.EquipmentId}
                 style={styles.box}
                 onPress={() => equipmentPressed(item.EquipmentId)}
               >
@@ -157,13 +160,13 @@ export default function SearchScreen() {
                   return;
                 }
                 return (
-                  <Pressable onPress={() => historyPressed(item.search_key)}>
+                  <Pressable key={item.equipment_search_history_id} onPress={() => historyPressed(item.search_key)}>
                     <View style={styles.historyField}>
                       <View style={styles.leftItem}>
                         <MaterialIcons
-                          style={{ margin: 10 }}
+                          style={{ margin: 5 }}
                           name="schedule"
-                          size={26}
+                          size={22}
                         />
                         <Text style={styles.text}>{item.search_key}</Text>
                       </View>
@@ -173,7 +176,7 @@ export default function SearchScreen() {
                           deleteHistory(item.equipment_search_history_id)
                         }
                       >
-                        <MaterialIcons name="close" size={25} />
+                        <MaterialIcons name="close" size={22} />
                       </Pressable>
                     </View>
                   </Pressable>
@@ -194,23 +197,21 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.gymme.background,
   },
   image: {
-    width: 80,
-    height: 80,
-    resizeMode: "contain",
+    width: 70,
+    height: 70,
     marginRight: 15,
   },
   textSearch: {
     flex: 1,
     marginLeft: 10,
-    fontSize: 16,
+    fontSize: 14,
     fontFamily: "Poppins",
-    fontWeight: "bold",
   },
   box: {
     flexDirection: "row",
     width: "100%",
-    paddingHorizontal: 20,
-    paddingVertical: 20,
+    paddingHorizontal: 15,
+    paddingVertical: 15,
     backgroundColor: Colors.gymme.background,
     alignItems: "center",
     borderRadius: 15,
@@ -230,7 +231,7 @@ const styles = StyleSheet.create({
   },
   mainLayout: {
     marginHorizontal: 25,
-    marginVertical: 40,
+    marginTop: 30
   },
   textField: {
     paddingHorizontal: 15,
@@ -247,9 +248,11 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   textInput: {
-    fontFamily: "Poppins",
     flex: 1,
-    padding: 10,
+    padding: 8,
+    fontSize: 12,
+    alignItems: "center",
+    fontFamily: "Poppins",
   },
   aiImage: {
     width: 45,
@@ -257,9 +260,8 @@ const styles = StyleSheet.create({
   },
   headerSearch: {
     marginTop: 5,
-    fontSize: 20,
-    fontWeight: "bold",
-    fontFamily: "Poppins",
+    fontSize: 18,
+    fontFamily: "PoppinsBold",
   },
   historyContainer: {
     marginTop: 15,
@@ -269,21 +271,21 @@ const styles = StyleSheet.create({
   historyField: {
     flexDirection: "row",
     borderBottomColor: Colors.gymme.placeholder,
-    borderBottomWidth: 2,
+    borderBottomWidth: 1,
     width: "100%",
     flex: 1,
     backgroundColor: Colors.gymme.background,
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 5,
+    marginBottom: 8,
   },
   leftItem: {
     flexDirection: "row",
     alignItems: "center",
   },
   text: {
-    padding: 10,
-    fontSize: 16,
+    padding: 5,
+    fontSize: 14,
     alignItems: "center",
     fontFamily: "Poppins",
   },

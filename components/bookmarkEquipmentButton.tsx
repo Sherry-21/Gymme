@@ -1,23 +1,58 @@
 import { Colors } from "@/constants/Colors";
 import { router, useRouter } from "expo-router";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
-import { eqDetailResultHelper, newsPathHelper } from "@/helper/pathUtils";
-import { useState } from "react";
+import { newsPathHelper } from "@/helper/pathUtils";
+import { useEffect, useState } from "react";
 
 const defaultImage = require("@/assets/images/default/default-logo.jpg");
 
-const BookmarkButton = (props: any) => {
+const NewsButton = (props: any) => {
   const [imageError, setImageError] = useState(false);
 
   const movePage = () => {
-    console.log(props.id);
-    router.push(eqDetailResultHelper({ muscleId: props.id }) as any);
+    router.push(newsPathHelper({ path: "newsDetail", id: props.id }) as any);
+  };
+
+  const checkImageUri = async (uri: string) => {
+    try {
+      const response = await fetch(uri);
+      if (!response.ok) {
+        throw new Error("Image not accessible");
+      }
+    } catch (error) {
+      setImageError(true);
+    }
   };
 
   const isError = () => {
-    console.log("error bos")
     setImageError(true);
   };
+
+  const convertDate = (dateString:string) => {
+    console.log(dateString)
+    const date = new Date(dateString);
+    
+    const monthNames = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ];
+    
+    const day = date.getUTCDate();
+    const month = monthNames[date.getUTCMonth()];
+    const year = date.getUTCFullYear();
+    
+    const formattedDate = `${day} ${month} ${year}`;
+
+    return formattedDate;
+  }
+
+  useEffect(() => {
+    if (props.image) {
+      checkImageUri(props.image);
+    } else {
+      setImageError(true);
+    }
+  }, [])
 
   return (
     <Pressable style={styles.box} onPress={movePage}>
@@ -35,10 +70,9 @@ const BookmarkButton = (props: any) => {
           onError={isError}
         ></Image>
       )}
-
       <View style={styles.rightContainer}>
         <Text style={styles.title}>{props.name}</Text>
-        <Text style={styles.subText}>{props.subText}</Text>
+        <Text style={styles.date}>{props.subText}</Text>
       </View>
     </Pressable>
   );
@@ -47,24 +81,24 @@ const BookmarkButton = (props: any) => {
 const styles = StyleSheet.create({
   box: {
     flexDirection: "row",
+    flex : 1,
     width: "100%",
-    padding: 20,
+    padding: 15,
     backgroundColor: Colors.gymme.background,
     alignItems: "center",
     borderRadius: 15,
     marginBottom: 15,
     shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    shadowRadius: 3,
     shadowOffset: {
       width: 0,
-      height: 5,
+      height: 3,
     },
-    elevation: 5,
+    elevation: 3,
   },
   image: {
     width: 80,
     height: 80,
-    resizeMode: "cover",
     marginRight: 15,
   },
   textInput: {
@@ -75,20 +109,19 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   title: {
-    fontSize: 15,
-    fontWeight: "600",
+    fontSize: 12,
     fontFamily: "Poppins",
-    flex: 1,
-    marginBottom: 3,
+    marginBottom: 2,
   },
-  subText: {
+  date: {
     color: Colors.gymme.placeholder,
-    fontSize: 13,
+    fontSize: 10,
     fontFamily: "Poppins",
   },
   rightContainer: {
-    flex: 1,
+    width: "70%",
+    justifyContent: 'center',
   },
 });
 
-export default BookmarkButton;
+export default NewsButton;

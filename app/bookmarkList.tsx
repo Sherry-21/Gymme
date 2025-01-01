@@ -16,6 +16,7 @@ import { getBookmarkList, getEqBookmarkList } from "./API/bookmarkApi";
 import { parseDate } from "./helper/dateFormatter";
 import Loading from "@/components/loading";
 import BookmarkButton from "@/components/bookmarkEquipmentButton";
+import { StatusBar } from "react-native";
 
 const dummy = require("@/assets/images/home/dummy img.png");
 
@@ -63,6 +64,7 @@ export default function bookmarkList() {
       }
       const data = response.data;
       const data2 = response2.data;
+      console.log(data, data2);
       setNews(data);
       setEquipmentList(data2);
     } catch (error) {
@@ -72,12 +74,18 @@ export default function bookmarkList() {
 
   return (
     <SafeAreaView style={styles.baseLayout}>
-      <View style={styles.headerContainer}>
-        <Pressable style={styles.backgroundArrow} onPress={() => backButton()}>
-          <MaterialIcons name="arrow-back-ios-new" size={24} color="#fff" />
-        </Pressable>
+      <StatusBar barStyle="light-content" backgroundColor="#F39C12" />
+      <View style={styles.headerMainContainer}>
+        <View style={styles.headerContainer}>
+          <Pressable
+            style={styles.backgroundArrow}
+            onPress={() => backButton()}
+          >
+            <MaterialIcons name="arrow-back-ios-new" size={24} color="#fff" />
+          </Pressable>
 
-        <Text style={styles.headerTitle}>Bookmark list</Text>
+          <Text style={styles.headerTitle}>Bookmark List</Text>
+        </View>
       </View>
       <View style={{ marginHorizontal: 25 }}>
         <View style={styles.optionDiv}>
@@ -103,7 +111,7 @@ export default function bookmarkList() {
                   <BookmarkButton
                     key={index}
                     id={item.equipment_course_id}
-                    image={dummy}
+                    image={item.equipment_photo_path}
                     name={item.equipment_name}
                     subText={item.equipment_course_name}
                   />
@@ -119,7 +127,7 @@ export default function bookmarkList() {
                     id={item.information_id}
                     image={item.information_header_path_content}
                     title={item.information_header}
-                    date={parseDate(item.information_date_created)}
+                    date={item.information_date_created}
                   />
                 ))
               : null}
@@ -137,12 +145,14 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.gymme.background,
   },
+  headerMainContainer: {
+    paddingTop: 30,
+    paddingBottom: 15,
+    marginBottom: 15,
+    backgroundColor: Colors.gymme.orange,
+  },
   headerContainer: {
     justifyContent: "center",
-    paddingTop: 40,
-    paddingBottom: 20,
-    backgroundColor: Colors.gymme.orange,
-    marginBottom: 15,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
@@ -157,15 +167,13 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   headerTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "white",
+    fontSize: 22,
     textAlign: "center",
-    flex: 1,
-    fontFamily: "Poppins",
+    fontFamily: "PoppinsBold",
+    color: "#fff",
   },
   optionDiv: {
-    paddingBottom: 15,
+    paddingBottom: 10,
     flexDirection: "row",
     justifyContent: "space-between",
     borderBottomWidth: 1,
@@ -183,7 +191,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
   },
   active: {
-    fontWeight: "bold",
+    fontFamily: "PoppinsBold",
     color: Colors.gymme.orange,
   },
   line: {

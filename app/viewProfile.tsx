@@ -69,12 +69,14 @@ const ViewProfile = () => {
     }
   };
 
-  const updateMode = (flag: boolean) => {
+  const updateMode = async(flag: boolean) => {
     setIsUpdate(flag);
-    if(flag == true) {
-      setHeight(heightTemp);
-    }else {
-      setHeight(`${height} cm`);
+    if (flag == true) {
+      console.log("HIT HERE")
+      console.log(heightTemp)
+      await setHeight(heightTemp);
+    } else {
+      await setHeight(`${height} cm`);
     }
   };
 
@@ -114,17 +116,22 @@ const ViewProfile = () => {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#F39C12" />
-      <View style={styles.headerContainer}>
-        <Pressable style={styles.backgroundArrow} onPress={() => backButton()}>
-          <MaterialIcons name="arrow-back-ios-new" size={24} color="#fff" />
-        </Pressable>
+      <View style={styles.headerMainContainer}>
+        <View style={styles.headerContainer}>
+          <Pressable
+            style={styles.backgroundArrow}
+            onPress={() => backButton()}
+          >
+            <MaterialIcons name="arrow-back-ios-new" size={24} color="#fff" />
+          </Pressable>
 
-        <Text style={styles.headerTitle}>Profile</Text>
+          <Text style={styles.headerTitle}>Profile</Text>
+        </View>
       </View>
 
       <View style={styles.mainContainer}>
         <View style={styles.textField}>
-          <MaterialIcons style={styles.image} name="person" size={26} />
+          <MaterialIcons style={styles.image} name="person" size={24} />
           <TextInput
             style={styles.textInput}
             value={name}
@@ -136,7 +143,7 @@ const ViewProfile = () => {
           ></TextInput>
         </View>
         <View style={styles.textField}>
-          <MaterialIcons style={styles.image} name="email" size={26} />
+          <MaterialIcons style={styles.image} name="email" size={24} />
           <TextInput
             style={styles.textInput}
             value={email}
@@ -148,7 +155,7 @@ const ViewProfile = () => {
           ></TextInput>
         </View>
         <View style={styles.textField}>
-          <MaterialIcons style={styles.image} name="height" size={26} />
+          <MaterialIcons style={styles.image} name="height" size={24} />
           <TextInput
             style={styles.textInput}
             value={height}
@@ -160,7 +167,7 @@ const ViewProfile = () => {
           ></TextInput>
         </View>
         <View style={styles.textField}>
-          <MaterialIcons style={styles.image} name="phone" size={26} />
+          <MaterialIcons style={styles.image} name="phone" size={24} />
           <TextInput
             style={styles.textInput}
             value={phoneNumber}
@@ -172,7 +179,7 @@ const ViewProfile = () => {
           ></TextInput>
         </View>
         <View style={styles.textField}>
-          <MaterialIcons style={styles.image} name="male" size={26} />
+          <MaterialIcons style={styles.image} name="male" size={24} />
           <Text style={styles.textInput}>{gender}</Text>
         </View>
         <View style={styles.textFieldDescription}>
@@ -181,7 +188,6 @@ const ViewProfile = () => {
             style={styles.textInputDescription}
             value={description}
             multiline={true}
-            numberOfLines={8}
             onChangeText={setDescription}
             placeholder={"Enter your profile description"}
             placeholderTextColor={Colors.gymme.placeholder}
@@ -243,12 +249,14 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fff",
   },
+  headerMainContainer: {
+    paddingTop: 30,
+    paddingBottom: 15,
+    marginBottom: 15,
+    backgroundColor: Colors.gymme.orange,
+  },
   headerContainer: {
     justifyContent: "center",
-    paddingTop: 40,
-    paddingBottom: 20,
-    backgroundColor: Colors.gymme.orange,
-    marginBottom: 15,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
@@ -269,12 +277,10 @@ const styles = StyleSheet.create({
     color: "white",
   },
   headerTitle: {
-    fontSize: 24,
-    fontFamily: "Poppins",
-    fontWeight: "bold",
-    color: "white",
+    fontSize: 22,
     textAlign: "center",
-    flex: 1,
+    fontFamily: "PoppinsBold",
+    color: "#fff",
   },
 
   mainContainer: {
@@ -289,8 +295,7 @@ const styles = StyleSheet.create({
   },
   textFieldDescription: {},
   textDescription: {
-    flex: 1,
-    fontSize: 16,
+    fontSize: 14,
     alignItems: "center",
     fontFamily: "Poppins",
     marginBottom: 5,
@@ -298,12 +303,14 @@ const styles = StyleSheet.create({
   },
   textInputDescription: {
     width: "100%",
+    height: 120,
     borderWidth: 1,
     borderColor: Colors.gymme.black,
     borderRadius: 15,
     padding: 10,
-    fontSize: 14,
+    fontSize: 12,
     fontFamily: "Poppins",
+    textAlignVertical: 'top'
   },
   image: {
     width: 24,
@@ -313,7 +320,7 @@ const styles = StyleSheet.create({
   textInput: {
     flex: 1,
     padding: 10,
-    fontSize: 14,
+    fontSize: 12,
     marginLeft: 10,
     alignItems: "center",
     fontFamily: "Poppins",
@@ -348,8 +355,8 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 50,
   },
   buttonText: {
-    fontWeight: "bold",
-    fontFamily: "Poppins",
+    fontSize: 13,
+    fontFamily: "PoppinsBold",
   },
   buttonRow: {
     flexDirection: "row",

@@ -29,6 +29,7 @@ export default function NewsDetail() {
   const [InformationId, SetInformationId]: any = useState(newsId);
 
   const [isLoading, setIsLoading] = useState(false);
+  const [finishChecking, setFinishChecking] = useState(false);
 
   const [errorToaster, setErrorToaster] = useState(false);
   const [errorImage, setErrorImage] = useState(false);
@@ -64,16 +65,20 @@ export default function NewsDetail() {
   const onclickGetInformation = async () => {
     setIsLoading(true);
     const data = await getInformationById(InformationId);
-    setIsLoading(false);
-    if (data == null) {
-      router.push("/search");
+    if (!data || data.success == false) {
+      router.push("/errorPage");
+      setIsLoading(false);
     } else {
-      console.log(data.data);
+      await validateLink(data);
+
+      console.log("ckckckc", data.data);
       setInformation(data.data);
       setBookmark(data.data.is_bookmark);
-      console.log(Information);
-      console.log(Information?.information_body_content);
+      console.log("info: ", Information);
+      console.log("body content ", Information?.information_body_content);
+      setIsLoading(false);
     }
+    setIsLoading(false);
   };
 
   const pressedErrorToaster = () => {
@@ -83,6 +88,38 @@ export default function NewsDetail() {
   useEffect(() => {
     onclickGetInformation();
   }, []);
+
+  const validateLink = async (data: any) => {
+    const checkImageUrl = data.data?.information_body_content?.forEach(
+      async (detail: any) => {
+        if (detail.information_image_content_path.length == 0) {
+          detail.information_image_content_path = null;
+        } else {
+          const responseImageUrl = await checkImageUri(
+            detail.information_image_content_path
+          );
+          if (responseImageUrl == false) {
+            detail.information_image_content_path = null;
+          }
+        }
+      }
+    );
+
+    setFinishChecking(true);
+  };
+
+  const checkImageUri = async (uri: string) => {
+    try {
+      const response = await fetch(uri);
+      if (!response.ok) {
+        throw new Error("Image not accessible");
+      }
+    } catch (error) {
+      setErrorImage(true);
+      return false;
+    }
+    return true;
+  };
 
   const imageError = () => {
     setErrorImage(true);
@@ -106,9 +143,9 @@ export default function NewsDetail() {
             </Text>
             <Pressable onPress={bookmarkNews}>
               {bookmark ? (
-                <MaterialIcons name="bookmark" size={36} color="#000" />
+                <MaterialIcons name="bookmark" size={32} color="#000" />
               ) : (
-                <MaterialIcons name="bookmark-outline" size={36} color="#000" />
+                <MaterialIcons name="bookmark-outline" size={32} color="#000" />
               )}
             </Pressable>
           </View>
@@ -118,16 +155,19 @@ export default function NewsDetail() {
 
           {Information?.information_body_content?.map((detail, index) => (
             <View key={index}>
-              <Text style={styles.newsText}>
-                {detail.information_body_paragraph}
-              </Text>
-              <Text>{"\n"}</Text>
-              {errorImage ? null : (
+              {detail.information_body_paragraph?.length == 0 ? null : (
+                <View>
+                  <Text style={styles.newsText}>
+                    {detail.information_body_paragraph}
+                  </Text>
+                  <Text>{"\n"}</Text>
+                </View>
+              )}
+              {detail.information_image_content_path == null ? null : (
                 <View>
                   <Image
                     style={styles.newsImage}
-                    source={{uri : detail.information_image_content_path}}
-                    onError={imageError}
+                    source={{ uri: detail.information_image_content_path }}
                   ></Image>
                   <Text>{"\n"}</Text>
                 </View>
@@ -165,13 +205,13 @@ const styles = StyleSheet.create({
   aboveImage: {
     flex: 1,
     width: "100%",
-    height: 230,
+    height: 200,
     zIndex: -5,
   },
   newsImage: {
     flex: 1,
     width: "100%",
-    height: 230
+    height: 230,
   },
   baseColor: {
     backgroundColor: "#fff",
@@ -191,12 +231,12 @@ const styles = StyleSheet.create({
     marginHorizontal: 25,
   },
   headerText: {
-    fontSize: 23,
-    // fontWeight: "bold",
-    marginRight: 30,
+    fontSize: 20,
+    marginRight: 10,
+    width: "80%",
     fontFamily: "PoppinsBold",
   },
-  textBookmark: {
+  textBookmark: { 
     justifyContent: "space-between",
     flex: 1,
     flexDirection: "row",
@@ -210,13 +250,12 @@ const styles = StyleSheet.create({
     color: Colors.gymme.placeholder,
     fontSize: 11,
     fontFamily: "Poppins",
-    marginTop: 5,
     marginBottom: 20,
   },
   newsText: {
     fontFamily: "Poppins",
-    fontSize: 14,
-    textAlign: "justify"
+    fontSize: 12,
+    textAlign: "justify",
   },
   errorToaster: {
     position: "absolute",
@@ -246,9 +285,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   titleNotFound: {
-    fontSize: 20,
-    fontFamily: "Poppins",
-    fontWeight: "bold",
+    fontSize: 18,
+    fontFamily: "PoppinsBold",
     color: "#F39C12",
     marginBottom: 5,
   },

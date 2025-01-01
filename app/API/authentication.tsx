@@ -9,6 +9,7 @@ const userLogin = async (payload:Object) => {
     try {
         const api = await API();
         const response = await api.post(ENDPOINTS.postUserLoginInfo(), payload);
+        console.log(response)
         return response.data;
     } catch (error: unknown) {
         return null;

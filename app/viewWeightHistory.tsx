@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 import {
+  Button,
   FlatList,
   Platform,
   Pressable,
   SafeAreaView,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   TextInput,
@@ -17,6 +19,7 @@ import { router } from "expo-router";
 import { getWeight } from "./API/weightApi";
 import DateInput from "@/components/dateInput";
 import Loading from "@/components/loading";
+import DateTimePicker from "@react-native-community/datetimepicker";
 
 interface DateInputProps {
   onDateChange?: (date: string) => void;
@@ -50,37 +53,37 @@ const updateTime = (user_weight_time: any) => {
 const viewWeightHistory = () => {
   const [historyData, SetHistoryData]: any = useState([]);
 
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
+  const [dateFrom, setDateFrom] = useState<Date>(new Date());
+  const [dateTo, setDateTo] = useState<Date>(new Date());
+  const [finalDateFrom, setFinalDateFrom] = useState("");
+  const [finalDateTo, setFinalDateTo] = useState("");
   const [isFocused, setIsFocused] = useState(false);
   const [isFocused2, setIsFocused2] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
   const [errorToaster, setErrorToaster] = useState(false);
 
-  const formatDateFrom = (text: string) => {
-    let numbers = text.replace(/[^\d]/g, "");
-    if (numbers.length >= 2) {
-      numbers = numbers.slice(0, 2) + "/" + numbers.slice(2);
-    }
-    if (numbers.length >= 5) {
-      numbers = numbers.slice(0, 5) + "/" + numbers.slice(5);
-    }
-    numbers = numbers.slice(0, 10);
-    console.log(numbers);
-    setDateFrom(numbers);
+  const [showPicker, setShowPicker] = useState(false);
+  const [showPicker2, setShowPicker2] = useState(false);
+
+  const formatDateFrom = (dateParameter: Date) => {
+    const formattedDate = dateParameter.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+
+    setFinalDateFrom(formattedDate);
   };
 
-  const formatDateTo = (text: string) => {
-    let numbers = text.replace(/[^\d]/g, "");
-    if (numbers.length >= 2) {
-      numbers = numbers.slice(0, 2) + "/" + numbers.slice(2);
-    }
-    if (numbers.length >= 5) {
-      numbers = numbers.slice(0, 5) + "/" + numbers.slice(5);
-    }
-    numbers = numbers.slice(0, 10);
-    setDateTo(numbers);
+  const formatDateTo = (dateParameter: Date) => {
+    const formattedDate = dateParameter.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+
+    setFinalDateTo(formattedDate);
   };
 
   const formatDate = (date: Date) => {
@@ -92,11 +95,12 @@ const viewWeightHistory = () => {
   };
 
   const searchWithFilter = async (date1: string, date2: string) => {
-    if(!date1 || !date2) {
+    if (!date1 || !date2) {
       setErrorToaster(true);
       return;
     }
-    
+    console.log("TEST?")
+    console.log(date1, date2)
     const [day, month, year] = date1.split("/").map(Number);
     const [day2, month2, year2] = date2.split("/").map(Number);
 
@@ -143,26 +147,33 @@ const viewWeightHistory = () => {
     const fetchWeightHistory = async () => {
       try {
         setIsLoading(true);
-        console.log("WKWKWK");
         const now = new Date();
+        console.log(now)
         const firstDate = new Date(now.getFullYear(), now.getMonth(), 1);
         const lastDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        console.log(firstDate, lastDate);
         const response = await getWeight(
           formatDate(firstDate),
           formatDate(lastDate)
         );
         setIsLoading(false);
-        console.log(response.data);
+        if(!response || response.success == false) {
+          throw new Error("Error")
+        }
+
         let row = response.data;
-        const updatedRows = row.map((item: any) => ({
-          ...item,
-          user_weight_time: updateTime(item.user_weight_time),
-        }));
-        console.log(updatedRows);
-        SetHistoryData((prev: any) => [...prev, ...updatedRows]);
-        console.log(historyData);
+        if(row != null) {
+          const updatedRows = row.map((item: any) => ({
+            ...item,
+            user_weight_time: updateTime(item.user_weight_time),
+          }));
+          console.log(updatedRows);
+          SetHistoryData((prev: any) => [...prev, ...updatedRows]);
+          console.log(historyData);
+        }
       } catch (error) {
         console.error("Error fetching data:", error);
+        router.push("/errorPage")
       }
     };
     fetchWeightHistory();
@@ -170,23 +181,59 @@ const viewWeightHistory = () => {
     console.log(historyData);
   }, []);
 
+  //date picker
+  const handleChange = (event: any, selectedDate: any) => {
+    setShowPicker(false);
+    if (selectedDate) {
+      console.log(selectedDate);
+      setDateFrom(selectedDate);
+      formatDateFrom(selectedDate);
+    }
+  };
+
+  const handleChange2 = (event: any, selectedDate2: any) => {
+    setShowPicker2(false);
+    if (selectedDate2) {
+      console.log(selectedDate2);
+      setDateTo(selectedDate2);
+      formatDateTo(selectedDate2);
+    }
+  };
+
+  const showDatePicker = () => {
+    setShowPicker(true);
+  };
+
+  const showDatePicker2 = () => {
+    setShowPicker2(true);
+  };
+  
+
   return (
     <SafeAreaView style={styles.mainContainer}>
-      <View style={styles.headerContainer}>
-        <Pressable style={styles.backgroundArrow} onPress={() => backButton()}>
-          <MaterialIcons name="arrow-back-ios-new" size={24} color="#fff" />
-        </Pressable>
+      <StatusBar barStyle="light-content" backgroundColor="#F39C12" />
+      <View style={styles.headerMainContainer}>
+        <View style={styles.headerContainer}>
+          <Pressable
+            style={styles.backgroundArrow}
+            onPress={() => backButton()}
+          >
+            <MaterialIcons name="arrow-back-ios-new" size={24} color="#fff" />
+          </Pressable>
 
-        <Text style={styles.headerTitle}>Weight History</Text>
+          <Text style={styles.headerTitle}>Weight History</Text>
+        </View>
       </View>
 
       <View style={styles.wrapper}>
-        <View
+        <Pressable
           style={[
             styles.container,
             isFocused && styles.focusedContainer,
-            dateFrom && styles.filledContainer,
+            finalDateFrom && styles.filledContainer,
           ]}
+
+          onPress={showDatePicker}
         >
           <View style={styles.labelContainer}>
             <Text
@@ -200,27 +247,35 @@ const viewWeightHistory = () => {
           </View>
           <TextInput
             style={styles.input}
-            value={dateFrom}
-            onChangeText={formatDateFrom}
+            value={finalDateFrom}
             keyboardType="numeric"
             maxLength={10}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
             placeholder={isFocused || dateFrom ? "dd/mm/yyyy" : ""}
             placeholderTextColor="rgba(107, 114, 128, 0.5)"
+            editable={false}
           />
           <View style={styles.iconContainer}>
             <MaterialIcons name="calendar-month" size={20} />
           </View>
-        </View>
+          {showPicker && (
+            <DateTimePicker
+              value={dateFrom}
+              mode="date"
+              display={Platform.OS === "ios" ? "spinner" : "default"}
+              onChange={handleChange}
+            />
+          )}
+        </Pressable>
 
-        <View
+        <Pressable
           style={[
             styles.container,
             isFocused2 && styles.focusedContainer,
-            dateTo && styles.filledContainer,
+            finalDateTo && styles.filledContainer,
             { marginLeft: 10 },
           ]}
+
+          onPress={showDatePicker2}
         >
           <View style={styles.labelContainer}>
             <Text
@@ -234,24 +289,30 @@ const viewWeightHistory = () => {
           </View>
           <TextInput
             style={styles.input}
-            value={dateTo}
-            onChangeText={formatDateTo}
+            value={finalDateTo}
             keyboardType="numeric"
             maxLength={10}
-            onFocus={() => setIsFocused2(true)}
-            onBlur={() => setIsFocused2(false)}
-            placeholder={isFocused2 || dateTo ? "dd/mm/yyyy" : ""}
+            placeholder={isFocused || dateFrom ? "dd/mm/yyyy" : ""}
             placeholderTextColor="rgba(107, 114, 128, 0.5)"
+            editable={false}
           />
           <View style={styles.iconContainer}>
             <MaterialIcons name="calendar-month" size={20} />
           </View>
-        </View>
+          {showPicker2 && (
+            <DateTimePicker
+              value={dateTo}
+              mode="date"
+              display={Platform.OS === "ios" ? "spinner" : "default"}
+              onChange={handleChange2}
+            />
+          )}
+        </Pressable>
 
         <Pressable
           style={styles.searchCircle}
           onPress={() => {
-            searchWithFilter(dateFrom, dateTo);
+            searchWithFilter(finalDateFrom, finalDateTo);
           }}
         >
           <MaterialIcons style={styles.searchIcon} name="search" size={20} />
@@ -259,7 +320,7 @@ const viewWeightHistory = () => {
       </View>
       {historyData != null && historyData.length !== 0 ? (
         <ScrollView>
-          {historyData.map((item: any, index: number) => (
+          {historyData?.map((item: any, index: number) => (
             <Pressable key={index}>
               <View style={styles.entryContainer}>
                 <Text style={styles.icon}>🏋️</Text>
@@ -298,7 +359,9 @@ const viewWeightHistory = () => {
                       justifyContent: "center",
                     }}
                   >
-                    <Text style={styles.Date}>{item.user_weight_time}</Text>
+                    <View style={{flex: 1, justifyContent: "flex-end"}}>
+                      <Text style={styles.Date}>{item.user_weight_time}</Text>
+                    </View>
                   </View>
                 </View>
               </View>
@@ -344,12 +407,14 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fff",
   },
+  headerMainContainer: {
+    paddingTop: 30,
+    paddingBottom: 15,
+    marginBottom: 15,
+    backgroundColor: Colors.gymme.orange,
+  },
   headerContainer: {
     justifyContent: "center",
-    paddingTop: 40,
-    paddingBottom: 20,
-    backgroundColor: Colors.gymme.orange,
-    marginBottom: 15,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
@@ -364,12 +429,10 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   headerTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "white",
+    fontSize: 22,
     textAlign: "center",
-    flex: 1,
-    fontFamily: "Poppins",
+    fontFamily: "PoppinsBold",
+    color: "#fff",
   },
   entryContainer: {
     flexDirection: "row",
@@ -379,7 +442,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 25,
   },
   icon: {
-    fontSize: 40,
+    fontSize: 32,
     marginRight: 10,
   },
   detail: {
@@ -388,15 +451,13 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   Weight: {
-    fontSize: 16,
-    fontWeight: "bold",
-    fontFamily: "Poppins"
+    fontSize: 14,
+    fontFamily: "Poppins",
   },
   Date: {
-    marginRight: 15,
-    fontSize: 16,
+    fontSize: 12,
     color: "#666",
-    fontFamily: "Poppins"
+    fontFamily: "Poppins",
   },
   divider: {
     height: 1,
@@ -405,7 +466,7 @@ const styles = StyleSheet.create({
   },
   bmiStatus: {
     fontFamily: "Poppins",
-    fontSize: 14
+    fontSize: 12,
   },
 
   //filter
@@ -418,6 +479,7 @@ const styles = StyleSheet.create({
     width: "39%",
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
     borderWidth: 1,
     borderColor: "#E5E7EB",
     borderRadius: 8,
@@ -446,33 +508,30 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: 3,
     top: 18,
-    fontSize: 15,
+    fontSize: 14,
     color: "#6B7280",
     backgroundColor: "transparent",
     paddingHorizontal: 4,
-    fontFamily: "Poppins"
+    fontFamily: "Poppins",
   },
   floatingLabel: {
     top: -4,
-    fontSize: 15,
+    fontSize: 14,
     color: "black",
     backgroundColor: "white",
-    fontFamily: "Poppins"
+    fontFamily: "Poppins",
   },
   input: {
     flex: 1,
-    height: "100%",
     width: "50%",
-    paddingHorizontal: 10,
-    fontSize: 14,
-    paddingTop: 8,
+    paddingLeft: 10,
+    fontSize: 12,
     color: "#374151",
-    fontFamily: "Poppins"
+    fontFamily: "Poppins",
   },
   iconContainer: {
     paddingVertical: 12,
     paddingHorizontal: 3,
-    height: "100%",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -543,14 +602,13 @@ const styles = StyleSheet.create({
     height: "100%",
   },
   emptyStateText: {
-    fontSize: 22,
-    fontWeight: "bold",
+    fontSize: 18,
     color: "#333",
-    marginBottom: 10,
-    fontFamily: "Poppins",
+    marginBottom: 5,
+    fontFamily: "PoppinsBold",
   },
   emptyStateSubtext: {
-    fontSize: 16,
+    fontSize: 14,
     color: "#666",
     fontFamily: "Poppins",
     textAlign: "center",

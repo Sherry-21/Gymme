@@ -2,7 +2,7 @@ import { Colors } from "@/constants/Colors";
 import { router, useRouter } from "expo-router";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { newsPathHelper } from "@/helper/pathUtils";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const defaultImage = require("@/assets/images/default/default-logo.jpg");
 
@@ -13,11 +13,47 @@ const NewsButton = (props: any) => {
     router.push(newsPathHelper({ path: "newsDetail", id: props.id }) as any);
   };
 
+  const checkImageUri = async (uri: string) => {
+    try {
+      const response = await fetch(uri);
+      if (!response.ok) {
+        throw new Error("Image not accessible");
+      }
+    } catch (error) {
+      setImageError(true);
+    }
+  };
+
   const isError = () => {
-    console.log("error bos")
     setImageError(true);
   };
-  
+
+  const convertDate = (dateString:string) => {
+    console.log(dateString)
+    const date = new Date(dateString);
+    
+    const monthNames = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ];
+    
+    const day = date.getUTCDate();
+    const month = monthNames[date.getUTCMonth()];
+    const year = date.getUTCFullYear();
+    
+    const formattedDate = `${day} ${month} ${year}`;
+
+    return formattedDate;
+  }
+
+  useEffect(() => {
+    if (props.image) {
+      checkImageUri(props.image);
+    } else {
+      setImageError(true);
+    }
+  }, [])
+
   return (
     <Pressable style={styles.box} onPress={movePage}>
       {imageError ? (
@@ -36,7 +72,7 @@ const NewsButton = (props: any) => {
       )}
       <View style={styles.rightContainer}>
         <Text style={styles.title}>{props.title}</Text>
-        <Text style={styles.date}>{props.date}</Text>
+        <Text style={styles.date}>{convertDate(props.date)}</Text>
       </View>
     </Pressable>
   );
@@ -45,6 +81,7 @@ const NewsButton = (props: any) => {
 const styles = StyleSheet.create({
   box: {
     flexDirection: "row",
+    flex : 1,
     width: "100%",
     padding: 15,
     backgroundColor: Colors.gymme.background,
@@ -52,17 +89,16 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     marginBottom: 15,
     shadowOpacity: 0.25,
-    shadowRadius: 4,
+    shadowRadius: 3,
     shadowOffset: {
       width: 0,
-      height: 5,
+      height: 3,
     },
-    elevation: 5,
+    elevation: 3,
   },
   image: {
     width: 80,
     height: 80,
-    resizeMode: "contain",
     marginRight: 15,
   },
   textInput: {
@@ -73,18 +109,17 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   title: {
-    fontSize: 15,
-    // fontWeight: "bold",
-    fontFamily: "PoppinsBold",
-    marginBottom: 3,
+    fontSize: 12,
+    fontFamily: "Poppins",
+    marginBottom: 2,
   },
   date: {
     color: Colors.gymme.placeholder,
-    fontSize: 12,
+    fontSize: 10,
     fontFamily: "Poppins",
   },
   rightContainer: {
-    flex: 1,
+    width: "70%",
     justifyContent: 'center',
   },
 });
