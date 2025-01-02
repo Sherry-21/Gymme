@@ -123,9 +123,9 @@ export default function AiLens() {
     const formData2 = new FormData();
     formData2.append('file', {
       uri: capturedImage,
-      type: 'image/jpeg', // Adjust if your images have a different format
-      name: 'YEYYYYYYYYYY.jpg', // Name of the file
-    } as any); // Required to suppress FormData TypeScript issues
+      type: 'image/jpeg',
+      name: 'YEYYYYYYYYYY.jpg',
+    } as any);
     formData2.append('upload_preset', "gymme_app");
     // data.append('upload_preset', UPLOAD_PRESET);
     try {
@@ -136,8 +136,6 @@ export default function AiLens() {
           'Content-Type': 'multipart/form-data',
         },
       });
-      // console.log("response : ", response)
-      // console.log("response data : ", response.json())
       const result = await response.json();
       console.log("response data AAAAAAAAAA : ", result)
       console.log("response : ", response)
@@ -149,16 +147,6 @@ export default function AiLens() {
   }
 
 
-// const testing = () => {
-//   const cld = new Cloudinary({
-//     cloud: {
-//       cloudName: "<your_cloud_name>",
-//     },
-//     url: {
-//       secure: true,
-//     },
-//   });
-// };
 
 const handleSubmit = () => {
   router.push(
