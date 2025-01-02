@@ -41,7 +41,7 @@ async function getKey() {
 
 export async function API() {
   const api = await axios.create({
-    baseURL: "http://192.168.1.68:3000/",
+    baseURL: "http://10.1.7.9:3000/",
     timeout: 5000,
     headers: {
       "Content-Type": "application/json",

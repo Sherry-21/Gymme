@@ -8,6 +8,7 @@ import { searchResultHelper } from "@/helper/pathUtils";
 import { aiSearch } from "./API/searchApi";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as FileSystem from "expo-file-system";
+import axios from "axios";
 // import base64 from 'react-native-base64';
 
 export default function AiLens() {
@@ -32,7 +33,7 @@ export default function AiLens() {
 
   const pickImage = async () => {
     const permissionResult =
-      await ImagePicker.requestMediaLibraryPermissionsAsync();
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (permissionResult.granted === false) {
       return;
@@ -85,121 +86,130 @@ export default function AiLens() {
     }
   };
 
-  const convertUriToPngBlob = async (uri: any) => {
+  // const convertUriToPngBlob = async (uri: any) => {
+  //   try {
+  //     const response = await fetch(uri);
+  //     console.log("RESPONSE WOI", response);
+  //     const result = await response.blob();
+  //     console.log("TESTING11", result);
+  //     return result;
+  //     // Read the file as Base64
+  //     // const fileContents = await FileSystem.readAsStringAsync(uri, {
+  //     //   encoding: FileSystem.EncodingType.Base64,
+  //     // });
+  //     // const blob = base64ToUint8Array(fileContents);
+  //     // return blob;
+  //   } catch (error) {
+  //     console.error("Error converting URI to Blob:", error);
+  //     throw error;
+  //   }
+  // };
+  const convertUriToPngBlob = async (uri: string): Promise<Blob> => {
     try {
       const response = await fetch(uri);
-      console.log("RESPONSE WOI", response);
-      const result = await response.blob();
-      console.log("TESTING11", result);
+      const blobDataD = await response.blob();
 
-      // return result;
-      // Read the file as Base64
-      const fileContents = await FileSystem.readAsStringAsync(uri, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
-      const blob = base64ToUint8Array(fileContents);
-      return blob;
+      return blobDataD;
     } catch (error) {
       console.error("Error converting URI to Blob:", error);
       throw error;
     }
   };
-
   const sendImage = async () => {
-    console.log("WKWKW OWI");
-
-    const formData = new FormData();
-    // formData.append("file", await convertUriToPngBlob(capturedImage));
-
-    formData.append("upload_preset", "gymme_app");
-    // formData.append("cloud_name", "dmgpda5o7");
-
-    try {
-      console.log("CIH", formData);
-      const response = await fetch(
-        `https://api.cloudinary.com/v1_1/dmgpda5o7/image/upload`,
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
-      console.log(response);
-
-      const result = await response.json();
-      console.log(result);
-      //send data to backend -> secureURL to get String of eq data
-      //add 1 variabel to store the data
-
-      // const responseSearch = await aiSearch(result.public_id);
-      // console.log(responseSearch)
-      // handleSubmit()
-    } catch (error) {
-      console.log(error);
+    if (!capturedImage) {
+      console.error("No image to upload");
       return;
     }
-  };
+    const formData2 = new FormData();
+    formData2.append('file', {
+      uri: capturedImage,
+      type: 'image/jpeg', // Adjust if your images have a different format
+      name: 'YEYYYYYYYYYY.jpg', // Name of the file
+    } as any); // Required to suppress FormData TypeScript issues
+    formData2.append('upload_preset', "gymme_app");
+    // data.append('upload_preset', UPLOAD_PRESET);
+    try {
+      const response = await fetch("https://api.cloudinary.com/v1_1/dmgpda5o7/image/upload", {
+        method: 'POST',
+        body: formData2,
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      // console.log("response : ", response)
+      // console.log("response data : ", response.json())
+      const result = await response.json();
+      console.log("response data AAAAAAAAAA : ", result)
+      console.log("response : ", response)
 
-  // const testing = () => {
-  //   const cld = new Cloudinary({
-  //     cloud: {
-  //       cloudName: "<your_cloud_name>",
-  //     },
-  //     url: {
-  //       secure: true,
-  //     },
-  //   });
-  // };
 
-  const handleSubmit = () => {
-    router.push(
+    }catch (e){
+      console.log("errorr : ", e)
+    }
+  }
+
+
+// const testing = () => {
+//   const cld = new Cloudinary({
+//     cloud: {
+//       cloudName: "<your_cloud_name>",
+//     },
+//     url: {
+//       secure: true,
+//     },
+//   });
+// };
+
+const handleSubmit = () => {
+  router.push(
       searchResultHelper({ path: "searchResult", name: "mock" }) as any
-    );
-  };
+  );
+};
 
-  return (
+return (
     <View style={styles.container}>
       {capturedImage ? (
-        <Image source={{ uri: capturedImage }} style={styles.capturedImage} />
+          <Image source={{ uri: capturedImage }} style={styles.capturedImage} />
       ) : (
-        <CameraView
-          ref={cameraRef}
-          style={styles.camera}
-          facing={type}
-          onCameraReady={onCameraReady}
-        ></CameraView>
+          <CameraView
+              ref={cameraRef}
+              style={styles.camera}
+              facing={type}
+              onCameraReady={onCameraReady}
+          ></CameraView>
       )}
 
       {capturedImage ? (
-        <View style={styles.containerButton}>
-          <View style={styles.buttonContainer}>
-            <Pressable style={styles.button} onPress={resetImage}>
-              <MaterialIcons name="restart-alt" size={36} color="#000" />
-            </Pressable>
-            <Pressable style={styles.button} onPress={sendImage}>
-              <MaterialIcons name="arrow-forward-ios" size={36} color="#000" />
-            </Pressable>
+          <View style={styles.containerButton}>
+            <View style={styles.buttonContainer}>
+              <Pressable style={styles.button} onPress={resetImage}>
+                <MaterialIcons name="restart-alt" size={36} color="#000" />
+              </Pressable>
+              <Pressable style={styles.button} onPress={sendImage}>
+                <MaterialIcons name="arrow-forward-ios" size={36} color="#000" />
+              </Pressable>
+            </View>
           </View>
-        </View>
       ) : (
-        <View style={styles.containerButton}>
-          <View style={styles.buttonContainer}>
-            <Pressable style={styles.buttonGallery} onPress={pickImage}>
-              <MaterialIcons name="photo-library" size={48} color="#fff" />
-            </Pressable>
-            <Pressable style={styles.button} onPress={takePicture}></Pressable>
-            <Pressable
-              style={styles.button}
-              onPress={() => {
-                setType(type === "back" ? "front" : "back");
-              }}
-            >
-              <MaterialIcons name="flip-camera-ios" size={36} color="#000" />
-            </Pressable>
+          <View style={styles.containerButton}>
+            <View style={styles.buttonContainer}>
+              <Pressable style={styles.buttonGallery} onPress={pickImage}>
+                <MaterialIcons name="photo-library" size={48} color="#fff" />
+              </Pressable>
+              <Pressable style={styles.button} onPress={takePicture}></Pressable>
+              <Pressable
+                  style={styles.button}
+                  onPress={() => {
+                    setType(type === "back" ? "front" : "back");
+                  }}
+              >
+                <MaterialIcons name="flip-camera-ios" size={36} color="#000" />
+              </Pressable>
+            </View>
           </View>
-        </View>
       )}
     </View>
-  );
+);
 }
 
 const styles = StyleSheet.create({
