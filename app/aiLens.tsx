@@ -8,6 +8,7 @@ import { searchResultHelper } from "@/helper/pathUtils";
 import { aiSearch } from "./API/searchApi";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as FileSystem from "expo-file-system";
+import axios from "axios";
 // import base64 from 'react-native-base64';
 
 export default function AiLens() {
@@ -85,34 +86,66 @@ export default function AiLens() {
     }
   };
 
-  const convertUriToPngBlob = async (uri: any) => {
+  // const convertUriToPngBlob = async (uri: any) => {
+  //   try {
+  //     const response = await fetch(uri);
+  //     console.log("RESPONSE WOI", response);
+  //     const result = await response.blob();
+  //     console.log("TESTING11", result);
+  //     return result;
+  //     // Read the file as Base64
+  //     // const fileContents = await FileSystem.readAsStringAsync(uri, {
+  //     //   encoding: FileSystem.EncodingType.Base64,
+  //     // });
+  //     // const blob = base64ToUint8Array(fileContents);
+  //     // return blob;
+  //   } catch (error) {
+  //     console.error("Error converting URI to Blob:", error);
+  //     throw error;
+  //   }
+  // };
+  const convertUriToPngBlob = async (uri: string): Promise<Blob> => {
     try {
       const response = await fetch(uri);
-      console.log("RESPONSE WOI", response);
-      const result = await response.blob();
-      console.log("TESTING11", result);
+      const blobDataD = await response.blob();
 
-      // return result;
-      // Read the file as Base64
-      const fileContents = await FileSystem.readAsStringAsync(uri, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
-      const blob = base64ToUint8Array(fileContents);
-      return blob;
+      return blobDataD;
     } catch (error) {
       console.error("Error converting URI to Blob:", error);
       throw error;
     }
   };
-
   const sendImage = async () => {
     console.log("WKWKW OWI");
 
     const formData = new FormData();
-    // formData.append("file", await convertUriToPngBlob(capturedImage));
 
+
+    // const imageBlob = await convertUriToPngBlob(capturedImage);
+    const imageBlob: Blob = await convertUriToPngBlob(capturedImage);
+
+    formData.append("file", imageBlob, "image.png");
     formData.append("upload_preset", "gymme_app");
+    console.log("Blob size: ", imageBlob.size);
+    console.log("Blob type: ", imageBlob.type);
+    // formData.append("file", imageBlob, "image.png");
+    // formData.append("upload_preset", "gymme_app");
+
+    // formData.append("file", await convertUriToPngBlob(capturedImage));
+    console.log("my file is",formData)
+    // formData.append("upload_preset", "gymme_app");
     // formData.append("cloud_name", "dmgpda5o7");
+    try {
+      const response = await axios.post(
+          "https://api.cloudinary.com/v1_1/dmgpda5o7/image/upload",
+          formData,
+          { headers: { "Content-Type": "multipart/form-data" } }
+      );
+      console.log("Upload successful:", response.data);
+    } catch (error) {
+      console.error("Error uploading image:", error);
+    }
+  };
 
     try {
       console.log("CIH", formData);
@@ -123,10 +156,10 @@ export default function AiLens() {
           body: formData,
         }
       );
-      console.log(response);
+      console.log("AAAAAAAAAAAA",response);
 
       const result = await response.json();
-      console.log(result);
+      console.log("",result);
       //send data to backend -> secureURL to get String of eq data
       //add 1 variabel to store the data
 
@@ -138,7 +171,6 @@ export default function AiLens() {
       return;
     }
   };
-
   // const testing = () => {
   //   const cld = new Cloudinary({
   //     cloud: {
