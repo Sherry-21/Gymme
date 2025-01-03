@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -9,21 +9,22 @@ import {
   StyleSheet,
   Alert,
   ActivityIndicator,
+  StatusBar,
 } from "react-native";
 import { Calendar } from "react-native-calendars";
 import { AntDesign, MaterialIcons } from "@expo/vector-icons";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { useNavigation } from "@react-navigation/native";
 import { Colors } from "@/constants/Colors";
-import { router } from "expo-router";
-// import { RootStackParamList } from '../types';
-
-interface Event {
-  id: string;
-  name: string;
-  startTime: string;
-  endTime: string;
-}
+import { router, useFocusEffect } from "expo-router";
+import { toZonedTime, format } from "date-fns-tz";
+import {
+  deleteCalendar,
+  getEventCalendar,
+  insertCalendar,
+  updateCalendar,
+} from "./API/calendarApi";
+import Loading from "@/components/loading";
 
 interface EventData {
   name: string;
@@ -41,11 +42,10 @@ interface TimeInputProps {
 interface AddEditEventModalProps {
   visible: boolean;
   onClose: () => void;
-  onSave: (eventData: Event) => void;
-  initialEvent?: Event;
+  onSave: (eventData: any, mode: string) => void;
+  initialEvent?: any;
+  mode: string;
 }
-
-// type CalendarScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Calendar'>;
 
 const API_BASE_URL = "";
 
@@ -130,27 +130,32 @@ const AddEditEventModal: React.FC<AddEditEventModalProps> = ({
   onClose,
   onSave,
   initialEvent,
+  mode,
 }) => {
-  const [eventName, setEventName] = useState<string>(initialEvent?.name || "");
-  const [startTime, setStartTime] = useState<string>(
-    initialEvent?.startTime || ""
-  );
-  const [endTime, setEndTime] = useState<string>(initialEvent?.endTime || "");
-  const endTimeHoursRef = useRef<TextInput | null>(null);
+  const [eventName, setEventName] = useState<string>("");
+  const [startTime, setStartTime] = useState<string>("");
+  const [endTime, setEndTime] = useState<string>("");
 
   const handleSave = () => {
     if (eventName && startTime && endTime) {
       const eventToSave = {
-        id: initialEvent?.id || Date.now().toString(),
+        id: initialEvent?.calendar_id || "",
         name: eventName,
         startTime,
         endTime,
       };
-      onSave(eventToSave);
+      onSave(eventToSave, mode);
+      reset();
       onClose();
     } else {
       Alert.alert("Error", "Please fill all fields");
     }
+  };
+
+  const reset = () => {
+    setEventName("");
+    setStartTime("");
+    setEndTime("");
   };
 
   return (
@@ -163,7 +168,7 @@ const AddEditEventModal: React.FC<AddEditEventModalProps> = ({
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
           <Text style={styles.modalTitle}>
-            {initialEvent ? "Edit Event" : "Add New Event"}
+            {mode == "edit" ? "Edit Event" : "Add New Event"}
           </Text>
 
           <View style={styles.inputContainer}>
@@ -181,7 +186,7 @@ const AddEditEventModal: React.FC<AddEditEventModalProps> = ({
               label="Start Time"
               initialTime={startTime}
               onTimeChange={setStartTime}
-              endTimeHoursRef={endTimeHoursRef}
+              endTimeHoursRef={null}
             />
             <TimeInput
               label="End Time"
@@ -202,7 +207,7 @@ const AddEditEventModal: React.FC<AddEditEventModalProps> = ({
               onPress={handleSave}
             >
               <Text style={[styles.buttonText, styles.saveButtonText]}>
-                Save
+                {mode == "add" ? "Save" : "Update"}
               </Text>
             </Pressable>
           </View>
@@ -213,240 +218,151 @@ const AddEditEventModal: React.FC<AddEditEventModalProps> = ({
 };
 
 const CalendarScreen = () => {
-  // const navigation = useNavigation<CalendarScreenNavigationProp>();
   const [selectedDate, setSelectedDate] = useState<string>(
     new Date().toISOString().split("T")[0]
   );
-  const [events, setEvents] = useState<{ [key: string]: Event[] }>({});
+  const [events, setEvents]: any = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
-  const [editingEvent, setEditingEvent] = useState<Event | undefined>(
-    undefined
-  );
+  const [editingEvent, setEditingEvent] = useState<any | undefined>(undefined);
+  const [mode, setMode] = useState("");
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const handleDayPress = (day: { dateString: string }) => {
     setSelectedDate(day.dateString);
+    fetchEvents(day.dateString);
   };
 
+  useFocusEffect(
+    useCallback(() => {
+      fetchEvents(transformDate(new Date()));
+    }, [])
+  );
+
   useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        setIsLoading(true);
-        const response = await fetch(`${API_BASE_URL}/events`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            // Add authentication token if required
-            // 'Authorization': `Bearer ${yourAuthToken}`
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch events");
-        }
-
-        const data = await response.json();
-
-        // Transform backend data into local events structure
-        const formattedEvents: { [key: string]: Event[] } = {};
-        data.forEach((event: Event & { date: string }) => {
-          if (!formattedEvents[event.date]) {
-            formattedEvents[event.date] = [];
-          }
-          formattedEvents[event.date].push({
-            id: event.id.toString(),
-            name: event.name,
-            startTime: event.startTime,
-            endTime: event.endTime,
-          });
-        });
-
-        setEvents(formattedEvents);
-      } catch (error) {
-        console.error("Error fetching events:", error);
-        Alert.alert("Error", "Failed to fetch events");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchEvents();
+    fetchEvents(transformDate(new Date()));
   }, []);
 
-  const handleAddEvent = async (newEvent: Event) => {
-    console.log("WOI WKWK");
+  const transformDate = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const formattedDate = `${year}-${month}-${day}`;
+
+    return formattedDate;
+  };
+
+  const fetchEvents = async (date: string) => {
     try {
-      // Determine if it's a new event or an update
-      const isNewEvent = newEvent.id.startsWith("temp_");
-
-      const eventData = {
-        name: newEvent.name,
-        startTime: newEvent.startTime,
-        endTime: newEvent.endTime,
-        date: selectedDate,
-      };
-
-      let response;
-      // if (isNewEvent) {
-      //     // Create new event
-      //     response = await fetch(`${API_BASE_URL}/events`, {
-      //         method: 'POST',
-      //         headers: {
-      //             'Content-Type': 'application/json',
-      //         },
-      //         body: JSON.stringify(eventData)
-      //     });
-      // } else {
-      //     // Update existing event
-      //     response = await fetch(`${API_BASE_URL}/events/${newEvent.id}`, {
-      //         method: 'PUT',
-      //         headers: {
-      //             'Content-Type': 'application/json',
-      //         },
-      //         body: JSON.stringify(eventData)
-      //     });
-      // }
-
-      // if (!response.ok) {
-      //     throw new Error('Failed to save event');
-      // }
-
-      // const savedEvent = await response.json();
-
-      console.log("HIT SINI BROK");
-      // Update local state
-      setEvents((prevEvents) => {
-        const updatedEvents = { ...prevEvents };
-        if (!updatedEvents[selectedDate]) {
-          updatedEvents[selectedDate] = [];
-        }
-
-        if (isNewEvent) {
-          // Add new event with backend-generated ID
-          updatedEvents[selectedDate].push({
-            // id: savedEvent.id.toString(),
-            // name: savedEvent.name,
-            // startTime: savedEvent.startTime,
-            // endTime: savedEvent.endTime
-            id: "1",
-            name: "awikwok",
-            startTime: "9",
-            endTime: "1",
-          });
-        }
-        // else {
-        //     // Update existing event
-        //     const index = updatedEvents[selectedDate].findIndex(e => e.id === newEvent.id);
-        //     if (index > -1) {
-        //         updatedEvents[selectedDate][index] = {
-        //             id: savedEvent.id.toString(),
-        //             name: savedEvent.name,
-        //             startTime: savedEvent.startTime,
-        //             endTime: savedEvent.endTime
-        //         };
-        //     }
-        // }
-
-        return updatedEvents;
-      });
-
-      // Close modal
-      setModalVisible(false);
+      setIsLoading(true);
+      const response = await getEventCalendar(date);
+      if (response == null || response.success == false) {
+        throw new Error("Not found data calendar");
+      }
+      console.log("WKWKKW WOI");
+      const data = response.data;
+      setEvents(data);
     } catch (error) {
-      console.error("Error saving event:", error);
-      Alert.alert("Error", "Failed to save event");
+      console.error("Error fetching events:", error);
+      router.push("/errorPage");
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleDeleteEvent = async (eventToDelete: Event) => {
+  const convertToGMT = (date: string) => {
+    const currentDate = new Date(date);
+    const utcDate = currentDate.toISOString();
+    const formattedDate = utcDate.replace("Z", "+07:00");
+
+    return formattedDate;
+  };
+
+  const formatTimeWithDate = (currentDate: string, time: string) => {
+    const date = new Date(currentDate);
+    const [hours, minutes] = time.split(":");
+    const finalHours = parseInt(hours, 10);
+    const finalMinutes = parseInt(minutes, 10);
+    date.setHours(finalHours + 7);
+    date.setMinutes(finalMinutes);
+
+    return convertToGMT(date.toISOString());
+  };
+
+  const handleAddEvent = async (newEvent: any, mode: string) => {
+    const currentDate = convertToGMT(selectedDate);
+    const fromTime = formatTimeWithDate(selectedDate, newEvent.startTime);
+    const endTime = formatTimeWithDate(currentDate, newEvent.endTime);
+
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/events/${eventToDelete.id}`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-            // Add authentication token if required
-            // 'Authorization': `Bearer ${yourAuthToken}`
-          },
-        }
-      );
+      const eventData = {
+        calendar_name: newEvent.name,
+        calendar_time_from: fromTime,
+        calendar_time_to: endTime,
+        calendar_date: currentDate,
+      };
 
-      if (!response.ok) {
-        throw new Error("Failed to delete event");
+      if (mode == "add") {
+        setIsLoading(true);
+        const response = await insertCalendar(eventData);
+        setIsLoading(false);
+        if (response == null || response.success == false) {
+          throw new Error("Error when inserting data events");
+        }
+        setEvents("");
+        fetchEvents(selectedDate);
+      } else if (mode == "edit") {
+        setIsLoading(true);
+        const response = await updateCalendar(
+          eventData,
+          editingEvent.calendar_id
+        );
+        setIsLoading(false);
+        if (response == null || response.success == false) {
+          throw new Error("Error when updating data events");
+        }
+        setEvents("");
+        fetchEvents(selectedDate);
       }
-
-      // Update local state
-      setEvents((prevEvents) => {
-        const updatedEvents = { ...prevEvents };
-
-        if (updatedEvents[selectedDate]) {
-          updatedEvents[selectedDate] = updatedEvents[selectedDate].filter(
-            (event) => event.id !== eventToDelete.id
-          );
-
-          // Remove date if no events
-          if (updatedEvents[selectedDate].length === 0) {
-            delete updatedEvents[selectedDate];
-          }
-        }
-
-        return updatedEvents;
-      });
+      setModalVisible(false);
     } catch (error) {
-      console.error("Error deleting event:", error);
-      Alert.alert("Error", "Failed to delete event");
+      console.error("Error saving event:", error);
+      router.push("/errorPage");
+    }
+  };
+
+  const handleDeleteEvent = async (eventToDelete: number) => {
+    console.log(eventToDelete);
+    try {
+      setIsLoading(true);
+      const response = await deleteCalendar(eventToDelete);
+      setIsLoading(false);
+      if (response == null || response.success == false) {
+        throw new Error("Error when deleting data events");
+      }
+      setEvents("");
+      fetchEvents(selectedDate);
+    } catch (error) {
+      console.log(error);
+      router.push("/errorPage");
     }
   };
 
   const createNewEvent = () => {
-    setEditingEvent({
-      id: `temp_${Date.now()}`,
-      name: "",
-      startTime: "",
-      endTime: "",
-    });
+    setEditingEvent(undefined);
+    setMode("add");
     setModalVisible(true);
   };
 
   const backButton = () => {
-    if(router.canGoBack()){
+    if (router.canGoBack()) {
       router.back();
+    } else {
+      router.push("/other");
     }
-    else {
-      router.push("/other")
-    }
-  }
+  };
 
-  if (isLoading) {
-    return (
-      <View style={styles.loadingOverlay}>
-        <ActivityIndicator size="large" color="#ffa500" />
-      </View>
-    );
-  }
   const getMarkedDates = () => {
     const marked: { [key: string]: any } = {};
-    console.log(selectedDate)
-    Object.keys(events).forEach((date) => {
-      marked[date] = {
-        marked: true,
-        customStyles: {
-          container: {
-            position: "relative",
-          },
-          dot: {
-            width: 8,
-            height: 8,
-            borderRadius: 4,
-            backgroundColor: "blue",
-            position: "absolute",
-            bottom: -3,
-            right: -3,
-          },
-        },
-      };
-    });
 
     marked[selectedDate] = {
       ...marked[selectedDate],
@@ -464,29 +380,36 @@ const CalendarScreen = () => {
         },
       },
     };
-
     return marked;
   };
 
+  const transformTime = (dateString: string) => {
+    const dateObject = new Date(dateString);
+    const hours = String(dateObject.getHours()).padStart(2, "0");
+    const minutes = String(dateObject.getMinutes()).padStart(2, "0");
+
+    return `${hours}:${minutes}`;
+  };
+
   const renderEvents = () => {
-    const dateEvents = events[selectedDate] || [];
-    if (dateEvents.length === 0) {
+    if (events == null || events?.length === 0) {
       return <Text style={styles.noEventsText}>No events for this day</Text>;
     }
 
-    return dateEvents.map((event, index) => (
-      <View key={event.id} style={styles.eventItemContainer}>
+    return events?.map((event: any) => (
+      <View key={event.calendar_id} style={styles.eventItemContainer}>
         <View style={styles.eventNameContainer}>
-          <Text style={styles.eventText}>• {event.name}</Text>
+          <Text style={styles.eventText}>• {event.calendar_name}</Text>
         </View>
         <View style={styles.eventDetailsContainer}>
-          <Text
-            style={styles.eventTime}
-          >{`${event.startTime} - ${event.endTime}`}</Text>
+          <Text style={styles.eventTime}>{`${transformTime(
+            event.calendar_time_from
+          )} - ${transformTime(event.calendar_time_to)}`}</Text>
           <View style={styles.eventActionContainer}>
             <Pressable
               onPress={() => {
                 setEditingEvent(event);
+                setMode("edit");
                 setModalVisible(true);
               }}
               style={styles.editButton}
@@ -495,7 +418,7 @@ const CalendarScreen = () => {
             </Pressable>
             <Pressable
               onPress={() => {
-                handleDeleteEvent(event);
+                handleDeleteEvent(event.calendar_id);
               }}
               style={styles.deleteButton}
             >
@@ -509,12 +432,18 @@ const CalendarScreen = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.headerContainer}>
-        <Pressable style={styles.backgroundArrow} onPress={() => backButton()}>
-          <MaterialIcons name="arrow-back-ios-new" size={24} color="#fff" />
-        </Pressable>
+      <StatusBar barStyle="light-content" backgroundColor="#F39C12" />
+      <View style={styles.headerMainContainer}>
+        <View style={styles.headerContainer}>
+          <Pressable
+            style={styles.backgroundArrow}
+            onPress={() => backButton()}
+          >
+            <MaterialIcons name="arrow-back-ios-new" size={24} color="#fff" />
+          </Pressable>
 
-        <Text style={styles.headerTitle}>Workout Calendar</Text>
+          <Text style={styles.headerTitle}>Calendar</Text>
+        </View>
       </View>
 
       <View style={styles.calendarContainer}>
@@ -536,15 +465,12 @@ const CalendarScreen = () => {
             selectedDotColor: "#ffffff",
             arrowColor: "orange",
             monthTextColor: "black",
-            textDayFontFamily: "monospace",
-            textMonthFontFamily: "monospace",
-            textDayHeaderFontFamily: "monospace",
-            textDayFontWeight: "300",
-            textMonthFontWeight: "bold",
-            textDayHeaderFontWeight: "300",
-            textDayFontSize: 16,
-            textMonthFontSize: 16,
-            textDayHeaderFontSize: 16,
+            textDayFontFamily: "Poppins",
+            textMonthFontFamily: "PoppinsBold",
+            textDayHeaderFontFamily: "Poppins",
+            textDayFontSize: 12,
+            textMonthFontSize: 12,
+            textDayHeaderFontSize: 12,
           }}
         />
       </View>
@@ -564,7 +490,7 @@ const CalendarScreen = () => {
 
       <View style={styles.addButtonContainer}>
         <Pressable style={styles.addButton} onPress={createNewEvent}>
-          <AntDesign name="pluscircle" size={60} color="#FFFFFF" />
+          <MaterialIcons name="add-circle" size={60} color="#FFFFFF" />
         </Pressable>
         <Text style={styles.addButtonText}>Add</Text>
       </View>
@@ -577,7 +503,10 @@ const CalendarScreen = () => {
         }}
         onSave={handleAddEvent}
         initialEvent={editingEvent}
+        mode={mode}
       />
+
+      {isLoading ? <Loading /> : null}
     </View>
   );
 };
@@ -593,12 +522,19 @@ const styles = StyleSheet.create({
     padding: 16,
     marginTop: 44, // Added for iOS status bar
   },
+  headerMainContainer: {
+    paddingTop: 30,
+    paddingBottom: 15,
+    marginBottom: 15,
+    backgroundColor: Colors.gymme.orange,
+  },
   headerContainer: {
     justifyContent: "center",
-    paddingTop: 40,
-    paddingBottom: 20,
-    backgroundColor: Colors.gymme.orange,
-    marginBottom: 15,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   backgroundArrow: {
     position: "absolute",
@@ -608,12 +544,10 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   headerTitle: {
-    fontSize: 24,
-    fontFamily: "Poppins",
-    fontWeight: "bold",
+    fontSize: 22,
+    fontFamily: "PoppinsBold",
     color: "white",
     textAlign: "center",
-    flex: 1,
   },
   borderLine: {
     height: 1,
@@ -621,33 +555,32 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
   },
   calendarContainer: {
-    paddingHorizontal: 20,
-    marginHorizontal: 25,
-    marginVertical: 15,
-    shadowColor: "#D6D8E1",
+    marginHorizontal: 40,
+    marginVertical: 10,
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.9,
-    shadowRadius: 10,
+    shadowOpacity: 1,
+    shadowRadius: 2,
     elevation: 20,
     borderRadius: 30,
     backgroundColor: "#fff",
   },
   calendar: {
     borderRadius: 10,
-    elevation: 5,
   },
   eventContainer: {
     flex: 1,
     backgroundColor: "#ffa500",
     borderTopLeftRadius: 50,
     borderTopRightRadius: 50,
-    padding: 20,
+    paddingVertical: 20,
+    paddingHorizontal: 30,
     marginTop: 15,
   },
   eventDate: {
     paddingTop: 5,
-    fontSize: 18,
-    fontWeight: "bold",
+    fontSize: 16,
+    fontFamily: "PoppinsBold",
     marginBottom: 10,
     color: "white",
   },
@@ -656,9 +589,10 @@ const styles = StyleSheet.create({
   },
   noEventsText: {
     color: "white",
-    fontSize: 16,
+    fontSize: 14,
     textAlign: "center",
-    marginTop:80,
+    marginTop: 60,
+    fontFamily: "Poppins",
   },
   eventItem: {
     flexDirection: "column",
@@ -678,13 +612,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   eventText: {
-    fontSize: 16,
-    fontFamily: "Poppins-SemiBold",
+    fontSize: 14,
+    fontFamily: "Poppins",
     color: "white",
   },
   eventTime: {
-    fontSize: 16,
-    fontFamily: "Poppins-SemiBold",
+    fontSize: 14,
+    fontFamily: "Poppins",
     color: "white",
   },
   addButtonContainer: {
@@ -695,13 +629,13 @@ const styles = StyleSheet.create({
   },
   addButton: {
     borderRadius: 30,
-    padding: 10,
+    marginBottom: 5,
   },
   addButtonText: {
-    color: "#FFFFFF",
+    color: "#fff",
     marginTop: 0,
-    fontSize: 16,
-    fontWeight: "bold",
+    fontSize: 14,
+    fontFamily: "PoppinsBold",
   },
   // Modal styles
   modalOverlay: {
@@ -717,32 +651,32 @@ const styles = StyleSheet.create({
     minHeight: 300,
   },
   modalTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
+    fontSize: 18,
+    fontFamily: "PoppinsBold",
     marginBottom: 20,
   },
   inputContainer: {
-    marginBottom: 20,
+    marginBottom: 16,
   },
   label: {
-    fontSize: 16,
-    marginBottom: 8,
+    fontSize: 14,
+    fontFamily: "Poppins",
+    marginBottom: 5,
     color: "#666",
   },
   input: {
     borderWidth: 1,
     borderColor: "#ddd",
     borderRadius: 8,
-    padding: 10,
-    fontSize: 16,
+    padding: 8,
+    fontSize: 14,
+    fontFamily: "Poppins",
   },
   timeContainer: {
     flexDirection: "column",
     gap: 16,
   },
-  timeInputWrapper: {
-    flex: 1,
-  },
+  timeInputWrapper: {},
   timeInputContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -752,8 +686,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#ddd",
     borderRadius: 8,
-    padding: 10,
-    fontSize: 16,
+    padding: 5,
+    fontSize: 14,
+    fontFamily: "Poppins",
     width: 60,
     textAlign: "center",
   },
@@ -765,23 +700,27 @@ const styles = StyleSheet.create({
   buttonContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: 20,
+    marginTop: 30,
   },
   button: {
-    flex: 1,
-    padding: 15,
+    width: "42%",
+    padding: 12,
     borderRadius: 8,
     marginHorizontal: 5,
   },
   cancelButton: {
-    backgroundColor: "#f2f2f2",
+    borderColor: Colors.gymme.orange,
+    borderWidth: 1,
+    borderRadius: 15,
   },
   saveButton: {
-    backgroundColor: "#ffa500",
+    backgroundColor: Colors.gymme.orange,
+    borderRadius: 15,
   },
   buttonText: {
     textAlign: "center",
-    fontSize: 16,
+    fontSize: 14,
+    fontFamily: "Poppins",
   },
   saveButtonText: {
     color: "white",
@@ -816,14 +755,13 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   editButton: {
-    // backgroundColor: 'green',
     borderRadius: 15,
-    padding: 5,
+    padding: 2,
+    marginLeft: 15,
   },
   deleteButton: {
-    // backgroundColor: 'red',
     borderRadius: 15,
-    padding: 5,
+    padding: 2,
   },
 });
 

@@ -60,11 +60,8 @@ export default function equipmentDetail() {
   };
 
   const validateLink = async (data: any) => {
-    console.log(data);
     const checkImageUrl = data.equipment_detail?.forEach(
       async (detail: any) => {
-        console.log("WKWK APA SIH");
-        console.log(detail.TutorialPath);
         if (detail.TutorialPath.length == 0) {
           detail.TutorialPath = null;
         } else {
@@ -90,7 +87,7 @@ export default function equipmentDetail() {
       const data = response.data;
       await validateLink(data);
       setEquipmentDetail(data);
-      setVideoLink(data.videoLink);
+      setVideoLink(data.video_tutorial_video_path);
       setBookmark(data.is_bookmark);
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -109,6 +106,7 @@ export default function equipmentDetail() {
   const bookmarkNews = async () => {
     const bookmarkTemp = !bookmark;
     console.log(bookmarkTemp);
+    setBookmark((bookmark) => !bookmark);
     if (bookmarkTemp == true) {
       const data = await postEqBookmarkList(parseInt(muscleId.toString()));
       console.log("true : ", data);
@@ -126,7 +124,6 @@ export default function equipmentDetail() {
         return;
       }
     }
-    setBookmark((bookmark) => !bookmark);
   };
 
   const imageError = () => {
@@ -321,7 +318,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     backgroundColor: Colors.gymme.orange,
-    borderBottomWidth: 1,
     borderBottomColor: Colors.gymme.placeholder,
 
     //ios

@@ -320,14 +320,13 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 10,
+    marginBottom: 5,
   },
   addButtonText: {
     color: "#F39C12",
     marginTop: 0,
-    fontSize: 16,
-    fontWeight: "bold",
-    fontFamily: "Poppins",
+    fontSize: 14,
+    fontFamily: "PoppinsBold",
   },
   iconBackground: {
     backgroundColor: "#fff",

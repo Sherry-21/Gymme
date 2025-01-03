@@ -4,11 +4,12 @@ import { Camera, CameraView } from "expo-camera";
 import { Colors } from "@/constants/Colors";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
-import { searchResultHelper } from "@/helper/pathUtils";
+import { equipmentHelper, searchResultHelper } from "@/helper/pathUtils";
 import { aiSearch } from "./API/searchApi";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as FileSystem from "expo-file-system";
 import axios from "axios";
+import Loading from "@/components/loading";
 // import base64 from 'react-native-base64';
 
 export default function AiLens() {
@@ -18,6 +19,8 @@ export default function AiLens() {
   const [capturedImage, setCapturedImage]: any = useState(null);
   const cameraRef: any = useRef(null);
   const [source, setSource]: any = useState(null);
+
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -33,7 +36,7 @@ export default function AiLens() {
 
   const pickImage = async () => {
     const permissionResult =
-        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (permissionResult.granted === false) {
       return;
@@ -72,132 +75,96 @@ export default function AiLens() {
     setCapturedImage("");
   };
 
-  const base64ToUint8Array = (base64: any) => {
-    try {
-      const binaryString = Buffer.from(base64, "base64").toString("ascii");
-      const len = binaryString.length;
-      const bytes = new Uint8Array(len);
-      for (let i = 0; i < len; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-      }
-      return bytes.toString();
-    } catch (err) {
-      return null;
-    }
-  };
-
-  // const convertUriToPngBlob = async (uri: any) => {
-  //   try {
-  //     const response = await fetch(uri);
-  //     console.log("RESPONSE WOI", response);
-  //     const result = await response.blob();
-  //     console.log("TESTING11", result);
-  //     return result;
-  //     // Read the file as Base64
-  //     // const fileContents = await FileSystem.readAsStringAsync(uri, {
-  //     //   encoding: FileSystem.EncodingType.Base64,
-  //     // });
-  //     // const blob = base64ToUint8Array(fileContents);
-  //     // return blob;
-  //   } catch (error) {
-  //     console.error("Error converting URI to Blob:", error);
-  //     throw error;
-  //   }
-  // };
-  const convertUriToPngBlob = async (uri: string): Promise<Blob> => {
-    try {
-      const response = await fetch(uri);
-      const blobDataD = await response.blob();
-
-      return blobDataD;
-    } catch (error) {
-      console.error("Error converting URI to Blob:", error);
-      throw error;
-    }
-  };
   const sendImage = async () => {
     if (!capturedImage) {
       console.error("No image to upload");
       return;
     }
     const formData2 = new FormData();
-    formData2.append('file', {
+    formData2.append("file", {
       uri: capturedImage,
-      type: 'image/jpeg',
-      name: 'YEYYYYYYYYYY.jpg',
+      type: "image/jpeg",
+      name: "user_image.jpg",
     } as any);
-    formData2.append('upload_preset', "gymme_app");
-    // data.append('upload_preset', UPLOAD_PRESET);
+    formData2.append("upload_preset", "gymme_app");
     try {
-      const response = await fetch("https://api.cloudinary.com/v1_1/dmgpda5o7/image/upload", {
-        method: 'POST',
-        body: formData2,
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      setIsLoading(true);
+      const response = await fetch(
+        "https://api.cloudinary.com/v1_1/dmgpda5o7/image/upload",
+        {
+          method: "POST",
+          body: formData2,
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
       const result = await response.json();
-      console.log("response data AAAAAAAAAA : ", result)
-      console.log("response : ", response)
-
-
-    }catch (e){
-      console.log("errorr : ", e)
+      console.log("result : ", result);
+      console.log("Public id", result.public_id);
+      const finalResult = await aiSearch(result.public_id);
+      if (finalResult == null || finalResult.success == false) {
+        throw new Error("error");
+      }
+      const data = finalResult.data;
+      setIsLoading(false);
+      if (data == null) {
+        router.push("/notFound");
+      } else {
+        router.push(equipmentHelper({ id: data.equipment_id }) as any);
+      }
+    } catch (e) {
+      console.log("error : ", e);
+      router.push("/errorPage");
     }
-  }
+  };
 
-
-
-const handleSubmit = () => {
-  router.push(
-      searchResultHelper({ path: "searchResult", name: "mock" }) as any
-  );
-};
-
-return (
+  return (
     <View style={styles.container}>
       {capturedImage ? (
-          <Image source={{ uri: capturedImage }} style={styles.capturedImage} />
+        <Image source={{ uri: capturedImage }} style={styles.capturedImage} />
       ) : (
-          <CameraView
-              ref={cameraRef}
-              style={styles.camera}
-              facing={type}
-              onCameraReady={onCameraReady}
-          ></CameraView>
+        <CameraView
+          ref={cameraRef}
+          style={styles.camera}
+          facing={type}
+          onCameraReady={onCameraReady}
+        ></CameraView>
       )}
 
       {capturedImage ? (
-          <View style={styles.containerButton}>
-            <View style={styles.buttonContainer}>
-              <Pressable style={styles.button} onPress={resetImage}>
-                <MaterialIcons name="restart-alt" size={36} color="#000" />
-              </Pressable>
-              <Pressable style={styles.button} onPress={sendImage}>
-                <MaterialIcons name="arrow-forward-ios" size={36} color="#000" />
-              </Pressable>
-            </View>
+        <View style={styles.containerButton}>
+          <View style={styles.buttonContainer}>
+            <Pressable style={styles.button} onPress={resetImage}>
+              <MaterialIcons name="restart-alt" size={36} color="#000" />
+            </Pressable>
+            <Pressable style={styles.button} onPress={sendImage}>
+              <MaterialIcons name="arrow-forward-ios" size={36} color="#000" />
+            </Pressable>
           </View>
+        </View>
       ) : (
-          <View style={styles.containerButton}>
-            <View style={styles.buttonContainer}>
-              <Pressable style={styles.buttonGallery} onPress={pickImage}>
-                <MaterialIcons name="photo-library" size={48} color="#fff" />
-              </Pressable>
-              <Pressable style={styles.button} onPress={takePicture}></Pressable>
-              <Pressable
-                  style={styles.button}
-                  onPress={() => {
-                    setType(type === "back" ? "front" : "back");
-                  }}
-              >
-                <MaterialIcons name="flip-camera-ios" size={36} color="#000" />
-              </Pressable>
-            </View>
+        <View style={styles.containerButton}>
+          <View style={styles.buttonContainer}>
+            <Pressable style={styles.buttonGallery} onPress={pickImage}>
+              <MaterialIcons name="photo-library" size={48} color="#fff" />
+            </Pressable>
+            <Pressable style={styles.button} onPress={takePicture}></Pressable>
+            <Pressable
+              style={styles.button}
+              onPress={() => {
+                setType(type === "back" ? "front" : "back");
+              }}
+            >
+              <MaterialIcons name="flip-camera-ios" size={36} color="#000" />
+            </Pressable>
           </View>
+        </View>
       )}
+
+      {isLoading ? <Loading /> : null}
     </View>
-);
+  );
 }
 
 const styles = StyleSheet.create({

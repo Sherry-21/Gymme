@@ -23,6 +23,7 @@ import {
 import { FlatList } from "react-native-gesture-handler";
 import Loading from "@/components/loading";
 import AiImage from "@/assets/images/search/aiImage";
+import SearchButton from "@/components/searchButton";
 
 const aiImage = require("@/assets/images/search/aiImage.svg");
 const dummy = require("@/assets/images/home/dummy img.png");
@@ -137,21 +138,18 @@ export default function SearchScreen() {
             ></TextInput>
           </View>
           <Pressable onPress={aiLens}>
-            <AiImage width={44} height={44}/>
+            <AiImage width={44} height={44} />
           </Pressable>
         </View>
 
         <View style={styles.historyContainer}>
           {value ? (
             searchItem.map((item: any) => (
-              <Pressable
-                key = {item.EquipmentId}
-                style={styles.box}
-                onPress={() => equipmentPressed(item.EquipmentId)}
-              >
-                <Image style={styles.image} source={item.equipment_photo_path}></Image>
-                <Text style={styles.textSearch}>{item.EquipmentName}</Text>
-              </Pressable>
+              <SearchButton
+                id={item.EquipmentId}
+                image={item.equipment_photo_path}
+                name={item.EquipmentName}
+              />
             ))
           ) : (
             <View>
@@ -161,7 +159,10 @@ export default function SearchScreen() {
                   return;
                 }
                 return (
-                  <Pressable key={item.equipment_search_history_id} onPress={() => historyPressed(item.search_key)}>
+                  <Pressable
+                    key={item.equipment_search_history_id}
+                    onPress={() => historyPressed(item.search_key)}
+                  >
                     <View style={styles.historyField}>
                       <View style={styles.leftItem}>
                         <MaterialIcons
@@ -232,7 +233,7 @@ const styles = StyleSheet.create({
   },
   mainLayout: {
     marginHorizontal: 25,
-    marginTop: 30
+    marginTop: 30,
   },
   textField: {
     paddingHorizontal: 15,

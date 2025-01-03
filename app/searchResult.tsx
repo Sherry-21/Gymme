@@ -40,11 +40,16 @@ export default function searchResult() {
         throw new Error("ERROR");
       }
       const data = response.data;
-      if (data.equipment_mapping_data == null) {
-        data.equipment_mapping_data = [];
+
+      if(data == null) {
+        router.push("/notFound")
+      }else {
+        if (data.equipment_mapping_data == null) {
+          data.equipment_mapping_data = [];
+        }
+        console.log(data);
+        setEquipment(data);
       }
-      console.log(data);
-      setEquipment(data);
     } catch (error) {
       console.error("Error fetching data:", error);
       router.push("/errorPage")

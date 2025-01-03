@@ -8,6 +8,7 @@ import {
 import ButtonCustom from "@/components/button";
 import { Colors } from "@/constants/Colors";
 import NotFound from "@/assets/images/error/notFound";
+import NotFound2 from "@/assets/images/error/notFound-2";
 
 const error = require("@/assets/images/error/notFound.svg");
 
@@ -19,7 +20,7 @@ export default function notFound() {
   return (
     <SafeAreaView style={styles.baseColor}>
       <View style={styles.mainLayout}>
-        <NotFound width={300} height={300}/>
+        <NotFound2 width={250} height={250}/>
 
         <Text style={styles.title}>Data not found</Text>
         <Text style={styles.subText}>No such data found in the database</Text>

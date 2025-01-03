@@ -3,7 +3,7 @@ import {API} from "../api";
 const ENDPOINTS = {
     getPageBySearch: (equipmentKey:string) => `/api/equipment?equipment_key=${equipmentKey}`,
     getAllCourse: (id:number) => `/api/equipment/course/${id}`,
-    getCourseById: (id:number) => `/api/equipment/course/by-id/${id}`
+    getCourseById: (id:number) => `/api/equipment/course/by-id/${id}`,
 } 
 
 const getPageBySearch = async (equipmentKey:string) => {

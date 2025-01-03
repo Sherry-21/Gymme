@@ -18,8 +18,6 @@ import Loading from "@/components/loading";
 import BookmarkButton from "@/components/bookmarkEquipmentButton";
 import { StatusBar } from "react-native";
 
-const dummy = require("@/assets/images/home/dummy img.png");
-
 export default function bookmarkList() {
   const [equipment, setEquipment]: any = useState(true);
   const [news, setNews] = useState<any[]>([]);
@@ -54,6 +52,8 @@ export default function bookmarkList() {
       const response = await getBookmarkList();
       const response2 = await getEqBookmarkList();
       setIsLoading(false);
+
+      console.log("WKWK")
       if (
         response == null ||
         response.success == false ||
@@ -68,6 +68,7 @@ export default function bookmarkList() {
       setNews(data);
       setEquipmentList(data2);
     } catch (error) {
+      console.log("WOI FAK")
       router.push("/errorPage");
     }
   };
