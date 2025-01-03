@@ -1,7 +1,7 @@
 import { Colors } from "@/constants/Colors";
 import { router, useRouter } from "expo-router";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
-import { newsPathHelper } from "@/helper/pathUtils";
+import { eqDetailResultHelper, newsPathHelper } from "@/helper/pathUtils";
 import { useEffect, useState } from "react";
 
 const defaultImage = require("@/assets/images/default/default-logo.jpg");
@@ -10,7 +10,7 @@ const NewsButton = (props: any) => {
   const [imageError, setImageError] = useState(false);
 
   const movePage = () => {
-    router.push(newsPathHelper({ path: "newsDetail", id: props.id }) as any);
+    router.push(eqDetailResultHelper({ muscleId: props.id }) as any);
   };
 
   const checkImageUri = async (uri: string) => {
