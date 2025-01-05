@@ -120,7 +120,7 @@ const TimerList: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#F39C12" />
+      <StatusBar barStyle="light-content" backgroundColor="#000" />
       <View style={styles.headerMainContainer}>
         <View style={styles.headerContainer}>
           <Pressable style={styles.backgroundArrow} onPress={() => backButton()}>
@@ -199,10 +199,10 @@ const TimerList: React.FC = () => {
                 onPress={() => setShowAddModal(false)}
                 style={styles.modalCancelButton}
               >
-                <Text>Cancel</Text>
+                <Text style={{textAlign: 'center', fontFamily: "Poppins"}}>Cancel</Text>
               </Pressable>
               <Pressable onPress={handleAddTimer} style={styles.modalAddButton}>
-                <Text style={{ color: "white", fontFamily: "Poppins" }}>
+                <Text style={{ color: "white", fontFamily: "Poppins", textAlign: 'center'}}>
                   Add
                 </Text>
               </Pressable>
@@ -367,9 +367,12 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 8,
     fontSize: 14,
-    backgroundColor: "#E5E7EB",
+    backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: Colors.gymme.orange,
     marginHorizontal: 5,
     fontFamily: "Poppins",
+    width: "25%"
   },
   modalAddButton: {
     padding: 10,
@@ -377,6 +380,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFA500",
     marginHorizontal: 5,
     fontSize: 14,
+    width: "25%"
   },
 });
 

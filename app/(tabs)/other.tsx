@@ -192,7 +192,7 @@ export default function ProfilePage() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#F39C12" />
+      <StatusBar barStyle="light-content" backgroundColor="#000" />
       <ScrollView>
         <View style={styles.header}>
           <View style={styles.headerContent}>
@@ -376,7 +376,7 @@ export default function ProfilePage() {
                     onPress={handleUpdateWeight}
                   >
                     <Text style={styles.updateButtonTextModal}>
-                      Update Weight
+                      Update
                     </Text>
                   </Pressable>
                 </View>
@@ -671,7 +671,9 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     width: "45%",
-    backgroundColor: "#f0f0f0",
+    backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: Colors.gymme.orange,
     paddingVertical: 12,
     paddingHorizontal: 15,
     borderRadius: 15,
@@ -691,7 +693,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   updateButtonTextModal: {
-    color: "#333",
+    color: "#fff",
     fontSize: 14,
     fontFamily: "Poppins",
   },

@@ -4,11 +4,10 @@
     "slug": "GymMe",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/final.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/images/splash.png",
+      "image": "./assets/images/final_splash2.png",
       "resizeMode": "cover",
       "backgroundColor": "#000"
     },
@@ -45,10 +44,10 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#000",
-          "image": "./assets/splash.png",
+          "backgroundColor": "#232323",
+          "image": "./assets/images/final_splash2.png",
           "dark": {
-            "image": "./assets/splash.png",
+            "image": "./assets/images/final_splash2.png",
             "backgroundColor": "#000000"
           },
           "imageWidth": 200

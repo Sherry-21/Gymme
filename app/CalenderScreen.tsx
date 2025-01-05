@@ -432,7 +432,7 @@ const CalendarScreen = () => {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#F39C12" />
+      <StatusBar barStyle="light-content" backgroundColor="#000" />
       <View style={styles.headerMainContainer}>
         <View style={styles.headerContainer}>
           <Pressable

@@ -158,7 +158,7 @@ export default function register() {
           />
           {emailError ? <Text style={styles.error}>{emailError}</Text> : null}
           <RegisterTextField
-            placeholderText={"Phone Numberzzz"}
+            placeholderText={"Phone Number"}
             image={"phone"}
             value={phoneNumber}
             setValue={setPhoneNumber}

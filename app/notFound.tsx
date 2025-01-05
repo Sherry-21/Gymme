@@ -42,14 +42,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    fontFamily: 'Poppins',
+    fontSize: 22,
+    fontFamily: 'PoppinsBold',
     marginBottom: 2, 
     marginTop: 5
   },
   subText: {
     fontSize: 16,
+    fontFamily: 'Poppins',
     color: Colors.gymme.placeholder,
     marginBottom: 30
   },

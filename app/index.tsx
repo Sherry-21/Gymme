@@ -25,9 +25,6 @@ import LoginLogo from "@/assets/images/login/loginLogo";
 
 SplashScreen.preventAutoHideAsync();
 
-const lock = require("@/assets/images/login/lock.png");
-const emailImage = require("@/assets/images/login/email.png");
-
 export default function App() {
 
   const [appIsReady, setAppIsReady] = useState(false);

@@ -181,6 +181,7 @@ const styles = StyleSheet.create({
   buttonContainer: {
     flex: 1,
     paddingVertical: 40,
+    paddingHorizontal: 10,
     backgroundColor: "rgba(0, 0, 0, 0.6)",
     zIndex: 5,
     flexDirection: "row",

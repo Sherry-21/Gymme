@@ -115,7 +115,7 @@ const ViewProfile = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#F39C12" />
+      <StatusBar barStyle="light-content" backgroundColor="#000" />
       <View style={styles.headerMainContainer}>
         <View style={styles.headerContainer}>
           <Pressable
@@ -214,7 +214,7 @@ const ViewProfile = () => {
 
           {isUpdate ? (
             <Pressable style={styles.button} onPress={updateData}>
-              <Text style={styles.buttonText}>Save</Text>
+              <Text style={[styles.buttonText, {color:"#fff"}]}>Save</Text>
             </Pressable>
           ) : null}
         </View>
@@ -355,8 +355,8 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 50,
   },
   buttonText: {
-    fontSize: 13,
-    fontFamily: "PoppinsBold",
+    fontSize: 14,
+    fontFamily: "Poppins",
   },
   buttonRow: {
     flexDirection: "row",

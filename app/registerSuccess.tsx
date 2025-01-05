@@ -34,15 +34,14 @@ const styles = StyleSheet.create({
         flex: 1
     },
     successLogo: {
-        marginTop: 100,
+        marginTop: 70,
         resizeMode: 'contain',
-        width: 300,
-        height: 300
+        width: 280,
+        height: 280
     },
     headerText: {
-        fontSize: 30,
-        fontWeight: 'bold',
-        fontFamily: 'Poppins'
+        fontSize: 28,
+        fontFamily: 'PoppinsBold'
     },
     bottomComponent: {
         flex: 1,

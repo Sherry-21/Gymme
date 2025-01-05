@@ -359,7 +359,7 @@ const WorkoutTimer: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#F39C12" />
+      <StatusBar barStyle="light-content" backgroundColor="#000" />
       <View style={styles.headerMainContainer}>
         <View style={styles.headerContainer}>
           <Pressable
@@ -485,10 +485,20 @@ const WorkoutTimer: React.FC = () => {
                 onPress={() => setShowAddModal(false)}
                 style={styles.modalCancelButton}
               >
-                <Text>Cancel</Text>
+                <Text style={{ textAlign: "center", fontFamily: "Poppins" }}>
+                  Cancel
+                </Text>
               </Pressable>
               <Pressable onPress={handleAdd} style={styles.modalAddButton}>
-                <Text style={{ color: "white" }}>Add</Text>
+                <Text
+                  style={{
+                    color: "white",
+                    fontFamily: "Poppins",
+                    textAlign: "center",
+                  }}
+                >
+                  Add
+                </Text>
               </Pressable>
             </View>
           </View>
@@ -701,18 +711,27 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   modalCancelButton: {
-    fontFamily: "Poppins",
     padding: 10,
     borderRadius: 8,
-    backgroundColor: "#E5E7EB",
+    fontSize: 14,
+    backgroundColor: "#fff",
+    borderWidth: 1,
+    alignItems: "center",
+    borderColor: Colors.gymme.orange,
     marginHorizontal: 5,
+    fontFamily: "Poppins",
+    width: "25%",
+    justifyContent: "center",
   },
   modalAddButton: {
-    fontFamily: "Poppins",
     padding: 10,
     borderRadius: 8,
     backgroundColor: "#FFA500",
     marginHorizontal: 5,
+    fontSize: 14,
+    width: "25%",
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   errorToaster: {

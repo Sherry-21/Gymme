@@ -227,7 +227,6 @@ export default function ProfilePage (){
         </View>
       </View>
 
-      {/* Update Weight Modal */}
       <Modal 
         visible={showUpdateModal} 
         animationType="slide" 

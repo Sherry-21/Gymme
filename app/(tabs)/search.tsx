@@ -120,7 +120,7 @@ export default function SearchScreen() {
 
   return (
     <SafeAreaView style={styles.saveArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+      <StatusBar barStyle="light-content" backgroundColor="#000" />
       <ScrollView style={styles.mainLayout}>
         <View style={styles.container}>
           <View style={styles.textField}>
@@ -146,6 +146,7 @@ export default function SearchScreen() {
           {value ? (
             searchItem.map((item: any) => (
               <SearchButton
+                key={item.EquipmentId}
                 id={item.EquipmentId}
                 image={item.equipment_photo_path}
                 name={item.EquipmentName}

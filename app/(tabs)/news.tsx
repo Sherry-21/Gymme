@@ -133,7 +133,7 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: Colors.gymme.background }}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+      <StatusBar barStyle="light-content" backgroundColor="#000" />
       <View style={styles.baseColor}>
         <Image
           style={styles.aboveImage}
