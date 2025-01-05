@@ -99,8 +99,6 @@ const viewWeightHistory = () => {
       setErrorToaster(true);
       return;
     }
-    console.log("TEST?")
-    console.log(date1, date2)
     const [day, month, year] = date1.split("/").map(Number);
     const [day2, month2, year2] = date2.split("/").map(Number);
 
@@ -127,7 +125,6 @@ const viewWeightHistory = () => {
         setIsLoading(false);
         SetHistoryData("");
         let row = response.data;
-        console.log(row);
         if (row != null && row.length !== 0) {
           const updatedRows = row.map((item: any) => ({
             ...item,
@@ -148,10 +145,8 @@ const viewWeightHistory = () => {
       try {
         setIsLoading(true);
         const now = new Date();
-        console.log(now)
         const firstDate = new Date(now.getFullYear(), now.getMonth(), 1);
         const lastDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-        console.log(firstDate, lastDate);
         const response = await getWeight(
           formatDate(firstDate),
           formatDate(lastDate)
@@ -167,9 +162,7 @@ const viewWeightHistory = () => {
             ...item,
             user_weight_time: updateTime(item.user_weight_time),
           }));
-          console.log(updatedRows);
           SetHistoryData((prev: any) => [...prev, ...updatedRows]);
-          console.log(historyData);
         }
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -177,15 +170,12 @@ const viewWeightHistory = () => {
       }
     };
     fetchWeightHistory();
-
-    console.log(historyData);
   }, []);
 
   //date picker
   const handleChange = (event: any, selectedDate: any) => {
     setShowPicker(false);
     if (selectedDate) {
-      console.log(selectedDate);
       setDateFrom(selectedDate);
       formatDateFrom(selectedDate);
     }
@@ -194,7 +184,6 @@ const viewWeightHistory = () => {
   const handleChange2 = (event: any, selectedDate2: any) => {
     setShowPicker2(false);
     if (selectedDate2) {
-      console.log(selectedDate2);
       setDateTo(selectedDate2);
       formatDateTo(selectedDate2);
     }

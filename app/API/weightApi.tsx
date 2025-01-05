@@ -20,15 +20,12 @@ const getWeight = async (firstDate:string, lastDate:string) => {
 
 const postWeight = async (payload:Object) => {  
     try {
-        console.log("HIT KE     ")
         console.log(payload)
         const api = await API();
         const response = await api.post(ENDPOINTS.postWeight(), payload);
         console.log(response)
-        console.log("FINISH")
         return response.data;
     } catch (error: unknown) {
-        console.log("WRONG - HIT HERE")
         console.log(error)
         return null;
     }
@@ -36,13 +33,10 @@ const postWeight = async (payload:Object) => {
 
 const getLatest =  async () => {
     try {
-        console.log("HIT SINI SINI SINI WOII")
         const api = await API();
         const response = await api.get(ENDPOINTS.getLatest());
-        console.log("HIT HERE?")
         return response.data;
     } catch (error: unknown) {
-        console.log("MASUK SINI WKWKWK")
         console.log(error)
         return null;
     }

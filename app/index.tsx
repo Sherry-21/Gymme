@@ -84,7 +84,6 @@ export default function App() {
       try {
         setIsLoading(true)
         const response = await userLogin(getPayload());
-        console.log("ckck", response)
         setIsLoading(false)
         if (response == null || response.success == false) {
           throw new Error("Invalid login credentials");

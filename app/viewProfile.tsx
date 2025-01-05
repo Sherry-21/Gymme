@@ -72,8 +72,6 @@ const ViewProfile = () => {
   const updateMode = async(flag: boolean) => {
     setIsUpdate(flag);
     if (flag == true) {
-      console.log("HIT HERE")
-      console.log(heightTemp)
       await setHeight(heightTemp);
     } else {
       await setHeight(`${height} cm`);

@@ -72,7 +72,6 @@ export default function NewsDetail() {
     } else {
       await validateLink(data);
 
-      console.log("ckckckc", data.data);
       setInformation(data.data);
       setBookmark(data.data.is_bookmark);
       console.log("info: ", Information);

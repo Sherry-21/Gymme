@@ -34,8 +34,6 @@ async function getKey() {
   const temp = await getItems("itemKey").then(token => {
     return token
   });
-
-  console.log("SUCCESS")
   return temp
 }
 
@@ -49,9 +47,6 @@ export async function API() {
       Authorization: `Bearer ${await getKey()}`,
     },
   });
-
-  console.log("Authorization Header:", api.defaults.headers["Authorization"]);
-  console.log("baseURL:", api.defaults.baseURL);
 
   return api;
 }

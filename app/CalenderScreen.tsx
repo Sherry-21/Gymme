@@ -258,7 +258,6 @@ const CalendarScreen = () => {
       if (response == null || response.success == false) {
         throw new Error("Not found data calendar");
       }
-      console.log("WKWKKW WOI");
       const data = response.data;
       setEvents(data);
     } catch (error) {

@@ -52,8 +52,6 @@ export default function bookmarkList() {
       const response = await getBookmarkList();
       const response2 = await getEqBookmarkList();
       setIsLoading(false);
-
-      console.log("WKWK")
       if (
         response == null ||
         response.success == false ||
@@ -64,11 +62,9 @@ export default function bookmarkList() {
       }
       const data = response.data;
       const data2 = response2.data;
-      console.log(data, data2);
       setNews(data);
       setEquipmentList(data2);
     } catch (error) {
-      console.log("WOI FAK")
       router.push("/errorPage");
     }
   };

@@ -65,7 +65,6 @@ const insertQueue = async (id:number, payload:Object) => {
         return response.data;
     } catch (error: unknown) {
         console.log(error)
-        console.log("PULO")
         return null;
     }
 };

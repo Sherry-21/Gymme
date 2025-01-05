@@ -275,7 +275,6 @@ const WorkoutTimer: React.FC = () => {
   };
 
   const getTimerAPI = async () => {
-    console.log("HIT GET");
     setIsLoading(true);
     const response = await getTimerQueue(parseInt(timerId.toString()));
     setIsLoading(false);

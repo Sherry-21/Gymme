@@ -24,7 +24,6 @@ export default function AiLens() {
 
   useEffect(() => {
     (async () => {
-      console.log("WKWK");
       const { status } = await Camera.requestCameraPermissionsAsync();
       setHasPermission(status === "granted");
     })();
@@ -62,7 +61,6 @@ export default function AiLens() {
       const options: any = { quality: 1, base64: true, skipProcessing: true };
       const photo: any = await cameraRef.current.takePictureAsync(options);
       await setCapturedImage(photo.uri);
-      console.log("CKCKKC", photo.uri);
       console.log(capturedImage);
     }
   };
