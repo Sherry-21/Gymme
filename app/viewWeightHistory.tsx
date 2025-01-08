@@ -118,8 +118,15 @@ const viewWeightHistory = () => {
       ) {
         setErrorToaster(true);
       } else {
-        const dateFilter1 = `${day}-${month}-${year}`;
-        const dateFilter2 = `${day2}-${month2}-${year2}`;
+        const formatDay1 = String(day).padStart(2, '0');
+        const formatMonth1 = String(month).padStart(2, '0');
+
+        const formatDay2 = String(day2).padStart(2, '0')
+        const formatMonth2 = String(month2).padStart(2, '0')
+
+        const dateFilter1 = `${formatDay1}-${formatMonth1}-${year}`;
+        const dateFilter2 = `${formatDay2}-${formatMonth2}-${year2}`;
+
         setIsLoading(true);
         const response = await getWeight(dateFilter1, dateFilter2);
         setIsLoading(false);
