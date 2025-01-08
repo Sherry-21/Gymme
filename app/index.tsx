@@ -35,7 +35,7 @@ export default function App() {
 
   const [emailError, setEmailError] = useState("");
   const [passError, setPassError] = useState("");
-
+  console.log("THIS IS MAIN ENTRY APP OF GYM ME");
   useEffect(() => {
     async function prepare() {
       try {

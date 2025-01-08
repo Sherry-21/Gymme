@@ -11,7 +11,14 @@
       "supportsTablet": true
     },
     "android": {
-
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ],
+      "package": "com.devinluize.GymMe"
     },
     "web": {
       "bundler": "metro",
@@ -53,8 +60,20 @@
       "typedRoutes": true
     },
     "packagerOpts": {
-      "sourceExts": ["js", "jsx", "svgx"],
+      "sourceExts": [
+        "js",
+        "jsx",
+        "svgx"
+      ],
       "transformer": "node_modules/react-native-svg-transformer/index.js"
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "ad0d3501-0a86-48e7-94b7-5b3463244a10"
+      }
     }
   }
 }
