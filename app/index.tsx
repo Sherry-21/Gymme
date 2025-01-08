@@ -90,7 +90,7 @@ export default function App() {
         } else {
           await setItems("itemKey", response.token);
         }
-        router.push('/news')
+        router.push('/article')
       } catch (error) {
         StatusBar.setBackgroundColor("rgba(0, 0, 0, 0.5)")
         setErrorToaster(true);

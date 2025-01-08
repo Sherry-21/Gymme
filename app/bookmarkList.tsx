@@ -94,7 +94,7 @@ export default function bookmarkList() {
           <View style={styles.line}></View>
           <Pressable style={styles.coverText} onPress={() => changeView(false)}>
             <Text style={[styles.option, !equipment ? styles.active : null]}>
-              News
+              Article
             </Text>
           </Pressable>
         </View>
@@ -121,10 +121,10 @@ export default function bookmarkList() {
               ? news.map((item: any, index: number) => (
                   <NewsButton
                     key={index}
-                    id={item.information_id}
-                    image={item.information_header_path_content}
-                    title={item.information_header}
-                    date={item.information_date_created}
+                    id={item.article_id}
+                    image={item.article_header_path_content}
+                    title={item.article_header}
+                    date={item.article_date_created}
                   />
                 ))
               : null}

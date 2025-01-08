@@ -3,22 +3,15 @@
     "name": "GymMe",
     "slug": "GymMe",
     "version": "1.0.0",
+    "icon": "./assets/images/final.png",
     "orientation": "portrait",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
-    "splash": {
-      "image": "./assets/images/final_splash2.png",
-      "resizeMode": "cover",
-      "backgroundColor": "#000"
-    },
     "ios": {
       "supportsTablet": true
     },
     "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      }
+
     },
     "web": {
       "bundler": "metro",
@@ -49,8 +42,7 @@
           "dark": {
             "image": "./assets/images/final_splash2.png",
             "backgroundColor": "#000000"
-          },
-          "imageWidth": 200
+          }
         }
       ],
       "expo-video",

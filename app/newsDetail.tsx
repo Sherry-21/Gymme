@@ -39,7 +39,7 @@ export default function NewsDetail() {
     if (router.canGoBack()) {
       router.back();
     } else {
-      router.push("/news");
+      router.push("/article");
     }
   };
 
@@ -75,7 +75,7 @@ export default function NewsDetail() {
       setInformation(data.data);
       setBookmark(data.data.is_bookmark);
       console.log("info: ", Information);
-      console.log("body content ", Information?.information_body_content);
+      console.log("body content ", Information?.article_body_content);
       setIsLoading(false);
     }
     setIsLoading(false);
@@ -90,16 +90,16 @@ export default function NewsDetail() {
   }, []);
 
   const validateLink = async (data: any) => {
-    const checkImageUrl = data.data?.information_body_content?.forEach(
+    const checkImageUrl = data.data?.article_body_content?.forEach(
       async (detail: any) => {
-        if (detail.information_image_content_path.length == 0) {
-          detail.information_image_content_path = null;
+        if (detail.article_image_content_path.length == 0) {
+          detail.article_image_content_path = null;
         } else {
           const responseImageUrl = await checkImageUri(
-            detail.information_image_content_path
+            detail.article_image_content_path
           );
           if (responseImageUrl == false) {
-            detail.information_image_content_path = null;
+            detail.article_image_content_path = null;
           }
         }
       }
@@ -131,7 +131,7 @@ export default function NewsDetail() {
       <ScrollView>
         <Image
           style={styles.aboveImage}
-          source={{uri: Information?.information_header_image_path}}
+          source={{uri: Information?.article_header_image_path}}
         ></Image>
         <Pressable style={styles.backgroundArrow} onPress={() => backButton()}>
           <MaterialIcons name="arrow-back-ios-new" size={20} color="#fff" />
@@ -140,7 +140,7 @@ export default function NewsDetail() {
         <View style={styles.mainLayout}>
           <View style={styles.textBookmark}>
             <Text style={styles.headerText}>
-              {Information?.information_header}
+              {Information?.article_header}
             </Text>
             <Pressable onPress={bookmarkNews}>
               {bookmark ? (
@@ -151,24 +151,24 @@ export default function NewsDetail() {
             </Pressable>
           </View>
           <Text style={styles.newsInfo}>
-            {parseDate(Information?.information_date_created ?? "")}
+            {parseDate(Information?.article_date_created ?? "")}
           </Text>
 
-          {Information?.information_body_content?.map((detail, index) => (
+          {Information?.article_body_content?.map((detail, index) => (
             <View key={index}>
-              {detail.information_body_paragraph?.length == 0 ? null : (
+              {detail.article_body_paragraph?.length == 0 ? null : (
                 <View>
                   <Text style={styles.newsText}>
-                    {detail.information_body_paragraph}
+                    {detail.article_body_paragraph}
                   </Text>
                   <Text>{"\n"}</Text>
                 </View>
               )}
-              {detail.information_image_content_path == null ? null : (
+              {detail.article_image_content_path == null ? null : (
                 <View>
                   <Image
                     style={styles.newsImage}
-                    source={{ uri: detail.information_image_content_path }}
+                    source={{ uri: detail.article_image_content_path }}
                   ></Image>
                   <Text>{"\n"}</Text>
                 </View>

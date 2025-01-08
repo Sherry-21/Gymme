@@ -26,9 +26,9 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="news"
+        name="article"
         options={{
-          title: "news",
+          title: "article",
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon
               name={focused ? "newspaper" : "newspaper-outline"}

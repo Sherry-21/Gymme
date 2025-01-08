@@ -61,7 +61,7 @@ export default function ProfilePage() {
 
       const information = response.data;
       const data2 = response2.data;
-      
+
       setUserId(
         information.user_name.length > 8
           ? `${information.user_name.slice(0, 8)}...`
@@ -193,7 +193,7 @@ export default function ProfilePage() {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#000" />
-      <ScrollView>
+      <ScrollView style={{ flex: 1 }}>
         <View style={styles.header}>
           <View style={styles.headerContent}>
             <View style={styles.welcomeContainer}>
@@ -375,44 +375,36 @@ export default function ProfilePage() {
                     style={[styles.updateButtonModal]}
                     onPress={handleUpdateWeight}
                   >
-                    <Text style={styles.updateButtonTextModal}>
-                      Update
-                    </Text>
+                    <Text style={styles.updateButtonTextModal}>Update</Text>
                   </Pressable>
                 </View>
               </View>
             </View>
           </Modal>
         </View>
-
-        {questionToaster && (
-          <View style={styles.errorToaster}>
-            <View style={styles.errorBox}>
-              <MaterialIcons
-                style={styles.icon}
-                name="help"
-                size={60}
-                color="#F39C12"
-              />
-              <Text style={styles.titleNotFound}>ARE YOU SURE?</Text>
-              <Text style={styles.subheaderText}>
-                Logout from your account?
-              </Text>
-              <View style={styles.buttonRow}>
-                <Pressable
-                  onPress={closeToaster}
-                  style={styles.toasterContentNo}
-                >
-                  <Text style={styles.errorTextNo}>no</Text>
-                </Pressable>
-                <Pressable onPress={logout} style={styles.toasterContentYes}>
-                  <Text style={styles.errorText}>yes</Text>
-                </Pressable>
-              </View>
+      </ScrollView>
+      {questionToaster && (
+        <View style={styles.errorToaster}>
+          <View style={styles.errorBox}>
+            <MaterialIcons
+              style={styles.icon}
+              name="help"
+              size={60}
+              color="#F39C12"
+            />
+            <Text style={styles.titleNotFound}>ARE YOU SURE?</Text>
+            <Text style={styles.subheaderText}>Logout from your account?</Text>
+            <View style={styles.buttonRow}>
+              <Pressable onPress={closeToaster} style={styles.toasterContentNo}>
+                <Text style={styles.errorTextNo}>no</Text>
+              </Pressable>
+              <Pressable onPress={logout} style={styles.toasterContentYes}>
+                <Text style={styles.errorText}>yes</Text>
+              </Pressable>
             </View>
           </View>
-        )}
-      </ScrollView>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -505,6 +497,7 @@ const styles = StyleSheet.create({
   },
   containerContent: {
     flex: 1,
+    zIndex: -1,
     backgroundColor: "#fff",
     paddingHorizontal: 20,
   },

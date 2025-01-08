@@ -3,9 +3,9 @@ import axios from "axios";
 import { router } from "expo-router";
 
 const ENDPOINTS = {
-    getInformationById:(id:number) =>`/api/information/by-id/${id}`,
-    getAllInformationByPagination: (page:string, limit:string) => `/api/information?page=${page}&limit=${limit}`,
-    getAllInformationBySearch: (page:string, limit:string, name:string) => `/api/information/search?key_filter=${name}&page=${page}&limit=${limit}`
+    getInformationById:(id:number) =>`/api/article/by-id/${id}`,
+    getAllInformationByPagination: (page:string, limit:string) => `/api/article?page=${page}&limit=${limit}`,
+    getAllInformationBySearch: (page:string, limit:string, name:string) => `/api/article/search?key_filter=${name}&page=${page}&limit=${limit}`
 }
 
 const getInformationById = async (id: number) => {

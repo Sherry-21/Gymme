@@ -53,7 +53,7 @@ const ViewProfile = () => {
       setGender(information.user_gender == "M" ? "Male" : "Female");
       setEmail(information.user_email);
       setHeightTemp(information.user_height);
-      setHeight(`${information.user_height} cm`);
+      setHeight(`${information.user_height}`);
       setPhoneNumber(information.user_phone_number);
       setDescription(information.user_profile_description);
     } catch (error) {
@@ -71,11 +71,6 @@ const ViewProfile = () => {
 
   const updateMode = async(flag: boolean) => {
     setIsUpdate(flag);
-    if (flag == true) {
-      await setHeight(heightTemp);
-    } else {
-      await setHeight(`${height} cm`);
-    }
   };
 
   const getPayload = () => {
@@ -99,7 +94,7 @@ const ViewProfile = () => {
         throw new Error("Error get profile");
       }
       setHeightTemp(height);
-      setHeight(`${height} cm`);
+      setHeight(`${height}`);
     } catch (error) {
       setErrorToaster(true);
     } finally {
@@ -163,6 +158,7 @@ const ViewProfile = () => {
             editable={isUpdate}
             underlineColorAndroid="transparent"
           ></TextInput>
+          <Text>( cm )</Text>
         </View>
         <View style={styles.textField}>
           <MaterialIcons style={styles.image} name="phone" size={24} />
@@ -322,8 +318,8 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     alignItems: "center",
     fontFamily: "Poppins",
+    color : "#000"
   },
-
   bottomContainer: {
     flex: 1,
     marginHorizontal: 25,

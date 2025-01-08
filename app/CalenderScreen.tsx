@@ -139,7 +139,7 @@ const AddEditEventModal: React.FC<AddEditEventModalProps> = ({
   const handleSave = () => {
     if (eventName && startTime && endTime) {
       const eventToSave = {
-        id: initialEvent?.calendar_id || "",
+        id: initialEvent?.event_id || "",
         name: eventName,
         startTime,
         endTime,
@@ -294,10 +294,10 @@ const CalendarScreen = () => {
 
     try {
       const eventData = {
-        calendar_name: newEvent.name,
-        calendar_time_from: fromTime,
-        calendar_time_to: endTime,
-        calendar_date: currentDate,
+        event_name: newEvent.name,
+        event_time_from: fromTime,
+        event_time_to: endTime,
+        event_date: currentDate,
       };
 
       if (mode == "add") {
@@ -313,7 +313,7 @@ const CalendarScreen = () => {
         setIsLoading(true);
         const response = await updateCalendar(
           eventData,
-          editingEvent.calendar_id
+          editingEvent.event_id
         );
         setIsLoading(false);
         if (response == null || response.success == false) {
@@ -396,14 +396,14 @@ const CalendarScreen = () => {
     }
 
     return events?.map((event: any) => (
-      <View key={event.calendar_id} style={styles.eventItemContainer}>
+      <View key={event.event_id} style={styles.eventItemContainer}>
         <View style={styles.eventNameContainer}>
-          <Text style={styles.eventText}>• {event.calendar_name}</Text>
+          <Text style={styles.eventText}>• {event.event_name}</Text>
         </View>
         <View style={styles.eventDetailsContainer}>
           <Text style={styles.eventTime}>{`${transformTime(
-            event.calendar_time_from
-          )} - ${transformTime(event.calendar_time_to)}`}</Text>
+            event.event_time_from
+          )} - ${transformTime(event.event_time_to)}`}</Text>
           <View style={styles.eventActionContainer}>
             <Pressable
               onPress={() => {
@@ -417,7 +417,7 @@ const CalendarScreen = () => {
             </Pressable>
             <Pressable
               onPress={() => {
-                handleDeleteEvent(event.calendar_id);
+                handleDeleteEvent(event.event_id);
               }}
               style={styles.deleteButton}
             >

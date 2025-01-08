@@ -4,7 +4,7 @@ import { router } from "expo-router";
 
 export default function registerSuccess() {
     const moveToNewsPage = () => {
-        router.push('/news')
+        router.push('/article')
     }
 
     return(

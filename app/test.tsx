@@ -27,7 +27,7 @@ export default function Test() {
   return (
       <ThemedView style={styles.container}>
         <ThemedText type="title">test.</ThemedText>
-        <Link href="/news" style={styles.link}>
+        <Link href="/article" style={styles.link}>
           {/* Display the token from localStorage */}
           {/* <ThemedText type="link">{localStorage.getItem('thisistoken')}!</ThemedText> */}
           {/* Display the resolved keyValue */}

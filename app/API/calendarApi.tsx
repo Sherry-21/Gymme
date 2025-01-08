@@ -1,10 +1,10 @@
 import {API} from "../api";
 
 const ENDPOINTS = {
-    getEventCalendar:(date:string) =>`api/calendar/by-date?calendar_date=${date}`,
-    insertCalendar:() =>'api/calendar/',
-    updateCalendar:(id:number) => `api/calendar/${id}`,
-    deleteCalendar:(id:number) => `api/calendar/delete/${id}`
+    getEventCalendar:(date:string) =>`api/event/by-date?event_date=${date}`,
+    insertCalendar:() =>'api/event/',
+    updateCalendar:(id:number) => `api/event/${id}`,
+    deleteCalendar:(id:number) => `api/event/delete/${id}`
 }
 
 const updateCalendar = async (payload:Object, id:number) => {

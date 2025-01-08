@@ -124,10 +124,10 @@ export default function HomeScreen() {
 
   const renderItem = ({ item }: { item: any }) => (
     <NewsButton
-      id={item.information_id}
-      image={item.information_header_path_content}
-      title={item.information_header}
-      date={item.information_date_created}
+      id={item.article_id}
+      image={item.article_header_path_content}
+      title={item.article_header}
+      date={item.article_date_created}
     />
   );
 
@@ -149,7 +149,7 @@ export default function HomeScreen() {
               style={styles.textInput}
               value={value}
               onChangeText={setValue}
-              placeholder={"Search news"}
+              placeholder={"Search article"}
               placeholderTextColor={Colors.gymme.placeholder}
               underlineColorAndroid="transparent"
               onSubmitEditing={handleSubmit}
@@ -163,7 +163,7 @@ export default function HomeScreen() {
         showsHorizontalScrollIndicator={false}
         showsVerticalScrollIndicator={false}
         renderItem={renderItem}
-        keyExtractor={(item, index) => `${item.information_id}-${index}`}
+        keyExtractor={(item, index) => `${item.article_id}-${index}`}
         onEndReached={({ distanceFromEnd }) => {
           if (distanceFromEnd < 0) {
             return;
