@@ -22,6 +22,7 @@ const loading = require("@/assets/images/searchResult/loading.gif");
 export default function equipmentDetail() {
   const ref = useRef(null);
   const [videoLink, setVideoLink] = useState("");
+  const [imageMuscle, setImageMuscle] = useState("");
 
   const { muscleId } = useLocalSearchParams();
 
@@ -87,6 +88,7 @@ export default function equipmentDetail() {
       const data = response.data;
       await validateLink(data);
       setEquipmentDetail(data);
+      setImageMuscle("https://res.cloudinary.com/dlrd9z1mk/image/upload/dumbbell_hammer_a8bvbz.jpg")
       setVideoLink(data.video_tutorial_video_path);
       setBookmark(data.is_bookmark);
     } catch (error) {
@@ -169,11 +171,13 @@ export default function equipmentDetail() {
       >
         <View style={styles.mainLayout}>
           <View style={styles.secondContainer}>
-            <Image
-              style={styles.chessImage}
-              source={require("@/assets/images/dummy/chessMuscle.png")}
-            ></Image>
-
+            {imageMuscle ? (
+              <Image
+                style={styles.chessImage}
+                source={{uri: imageMuscle}}
+                onError={imageError}
+              ></Image>
+            ) : null}
             <View style={styles.tableContainer}>
               <Text style={styles.headerTable}>Exercise Profile</Text>
               <View style={styles.tableRow}>
@@ -345,7 +349,8 @@ const styles = StyleSheet.create({
     display: "flex",
   },
   chessImage: {
-    width: "25%",
+    flex: 1,
+    height: "100%",
   },
   secondContainer: {
     display: "flex",
