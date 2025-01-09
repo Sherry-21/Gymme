@@ -40,7 +40,7 @@ async function getKey() {
 export async function API() {
   const api = await axios.create({
     baseURL: "https://gymme-backend-development.up.railway.app/",
-    timeout: 5000,
+    timeout: 10000,
     headers: {
       "Content-Type": "application/json",
       Accept: "application/json",

@@ -3,7 +3,7 @@
     "name": "GymMe",
     "slug": "GymMe",
     "version": "1.0.0",
-    "icon": "./assets/images/final.png",
+    "icon": "./assets/images/icon.png",
     "orientation": "portrait",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
@@ -12,7 +12,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/icon.png",
         "backgroundColor": "#ffffff"
       },
       "permissions": [
@@ -23,7 +23,7 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/icon.png"
     },
     "plugins": [
       [
@@ -44,12 +44,13 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#232323",
-          "image": "./assets/images/final_splash2.png",
+          "backgroundColor": "#fff",
+          "image": "./assets/images/splash.png",
           "dark": {
-            "image": "./assets/images/final_splash2.png",
-            "backgroundColor": "#000000"
-          }
+            "image": "./assets/images/splash.png",
+            "backgroundColor": "#fff"
+          },
+          "resizeMode": "cover"
         }
       ],
       "expo-video",
