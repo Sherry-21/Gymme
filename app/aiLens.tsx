@@ -106,7 +106,7 @@ export default function AiLens() {
       }
       const data = finalResult.data;
       setIsLoading(false);
-      if (data == null) {
+      if (!data) {
         router.push("/notFound");
       } else {
         router.push(equipmentHelper({ id: data.equipment_id }) as any);

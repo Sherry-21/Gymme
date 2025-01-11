@@ -15,7 +15,6 @@ import { useLocalSearchParams } from "expo-router";
 import Loading from "@/components/loading";
 import { MaterialIcons } from "@expo/vector-icons";
 import { getAllCourse } from "./API/equipmentApi";
-import { Colors } from "@/constants/Colors";
 
 export default function searchResult() {
   const [equipment, setEquipment]: any = useState(null);
