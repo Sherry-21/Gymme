@@ -105,8 +105,19 @@ export default function AiLens() {
         throw new Error("error");
       }
       const data = finalResult.data;
+
+      // console.log("fial result",data)
+      // if (data.equipment_id===0){
+      //   console.log("equipment id :",finalResult.data)
+      //   router.push("/notFound");
+      // }
+      // if (data.equipment_id==0){
+      //   console.log("equipment id 2:",finalResult.data)
+      //
+      //   router.push("/notFound");
+      // }
       setIsLoading(false);
-      if (!data) {
+      if (data.equipment_id==0) {
         router.push("/notFound");
       } else {
         router.push(equipmentHelper({ id: data.equipment_id }) as any);
